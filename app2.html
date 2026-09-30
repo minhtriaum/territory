@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>시간대별 구역 배정판</title>
+<style>
+:root{--bg:#f3f4f0;--c:#fff;--t:#17211b;--m:#66706a;--p:#0b6b3a;--b:#dcdfd8;--w:#c0392b;--o:#e67e22}
+@media(prefers-color-scheme:dark){:root{--bg:#121513;--c:#1b1f1c;--t:#e9ede9;--m:#98a29b;--p:#4ad08a;--b:#2b312d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(10px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--b)}
+h1{font-size:19px;margin:0}h2{font-size:15px;margin:0 0 8px}
+main{padding:12px;max-width:640px;margin:auto}
+section{display:none}section.on{display:block}
+.card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:12px;margin-bottom:12px}
+.map{height:250px;border-radius:8px;position:relative;overflow:hidden;background:#dfe8dc}
+.map.mock{background:linear-gradient(90deg,#0001 1px,transparent 1px) 0 0/10% 100%,linear-gradient(#0001 1px,transparent 1px) 0 0/100% 10%,#dbe6d6}
+.hint{color:var(--m);font-size:13px;margin:6px 0}
+label{display:block;font-size:13px;color:var(--m);margin:8px 0 3px}
+input,select,textarea{width:100%;font:inherit;color:var(--t);background:var(--bg);border:1px solid var(--b);border-radius:8px;padding:9px 10px;min-height:42px}
+textarea{min-height:60px}
+input[type=checkbox]{width:24px;min-height:24px;height:24px;flex:0 0 24px}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+button{font:inherit;border:1px solid var(--b);background:var(--c);color:var(--t);border-radius:8px;padding:10px 12px;min-height:42px}
+button.pri{background:var(--p);color:#fff;border-color:var(--p)}
+@media(prefers-color-scheme:dark){button.pri{color:#06170d}}
+button.del{color:var(--w);padding:6px 10px;min-height:34px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chips button{flex:0 0 auto;border-radius:20px;padding:8px 14px}
+.chips button.on{background:var(--p);color:#fff;border-color:var(--p);font-weight:700}
+@media(prefers-color-scheme:dark){.chips button.on{color:#06170d}}
+.pin{width:28px;height:28px;border-radius:50%;background:var(--c);color:var(--m);display:grid;place-items:center;border:2px solid var(--m);font-weight:700;font-size:13px;box-shadow:0 1px 4px #0005;cursor:pointer}
+.pin.on{background:var(--p);color:#fff;border-color:#fff}
+.pin.new{background:var(--o);color:#fff;border-color:#fff}
+.mock .pin{position:absolute;margin:-14px 0 0 -14px}
+.zr{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--b)}
+.zr .b{flex:1;min-width:0}.zr select{margin-top:6px}
+.chip{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--b)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--b);padding:7px 8px;text-align:left;vertical-align:top}
+th{color:var(--m);background:var(--bg)}
+.d{color:var(--m);font-size:12px}.m{color:var(--m)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--c);border-top:1px solid var(--b);padding-bottom:env(safe-area-inset-bottom);z-index:6}
+nav button{flex:1;border:0;border-radius:0;min-height:54px;background:none;color:var(--m)}
+nav button.on{color:var(--p);font-weight:700}
+#share{position:absolute;left:-9999px;top:0;width:520px;padding:18px;background:#fff;color:#111}
+#share th,#share td{border:1px solid #bbb;color:#111;background:#fff}#share .d{color:#555}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#17211b;color:#fff;padding:9px 16px;border-radius:20px;font-size:14px;display:none;z-index:9;max-width:90%}
+</style></head><body>
+<header><h1 id="ttl">시간대별 구역 배정판</h1></header>
+<main>
+<section id="s1" class="on">
+  <div class="card">
+    <h2>시간대</h2>
+    <div class="chips" id="chips"></div>
+    <div class="row" style="margin-top:8px;align-items:center"><input id="ss" type="time" value="09:00"><input id="se" type="time" value="10:00"><button class="pri" style="flex:0 0 96px" onclick="addSlot()">시간대 추가</button></div>
+  </div>
+  <div class="card">
+    <h2 id="mt">구역 체크</h2>
+    <div id="map" class="map"></div>
+    <div class="hint">지도의 번호를 누르거나 아래 목록에서 체크하면 이 시간대에 활동하는 구역이 돼요. 초록색이 체크된 구역이에요.</div>
+    <div id="zl"></div>
+    <button class="del" id="delslot" onclick="delSlot()" style="margin-top:8px">이 시간대 삭제</button>
+  </div>
+  <div class="card">
+    <h2>시간별 배정표</h2>
+    <div id="tw"></div>
+    <div class="row" style="margin-top:10px"><button class="pri" onclick="shareImg()">이미지 공유</button><button onclick="shareText()">전체 문자 공유</button></div>
+    <div class="row" style="margin-top:8px"><select id="pp"></select><button onclick="sharePerson()">담당자 일정 공유</button></div>
+    <button style="width:100%;margin-top:8px" onclick="copyTable()">표 복사</button>
+  </div>
+</section>
+<section id="s2">
+  <div class="card">
+    <h2>구역 등록</h2>
+    <div id="smap" class="map"></div>
+    <div class="hint" id="sinfo">지도를 눌러 구역 위치를 찍으세요.</div>
+    <label>구역명</label><input id="zn" placeholder="예: 정문 안내">
+    <label>구역 설명</label><textarea id="zd" placeholder="예: 정문 좌측 부스. 방문객 안내와 출입증 확인"></textarea>
+    <button class="pri" style="margin-top:10px;width:100%" onclick="addZone()">구역 등록</button>
+  </div>
+  <div class="card"><h2>등록한 구역</h2><div id="zlist"></div></div>
+  <div class="card">
+    <h2>이름 관리</h2>
+    <div class="row"><input id="pn" placeholder="이름 입력" onkeydown="if(event.key=='Enter')addP()"><button class="pri" style="flex:0 0 80px" onclick="addP()">추가</button></div>
+    <div id="pl" style="margin-top:8px"></div>
+    <button class="del" style="margin-top:10px" onclick="clearP()">이름 모두 지우기</button>
+  </div>
+  <div class="card">
+    <h2>카카오맵 연결</h2>
+    <label>JavaScript 키</label><input id="key" placeholder="비워두면 목업 지도로 동작">
+    <div class="hint">카카오디벨로퍼스 [플랫폼 키] > [JavaScript 키]의 JavaScript SDK 도메인에 이 페이지 주소를 등록해야 해요. 저장하면 새로고침돼요.</div>
+    <button class="pri" onclick="saveKey()">저장</button>
+  </div>
+</section>
+</main>
+<nav><button id="n1" class="on" onclick="tab(1)">배정</button><button id="n2" onclick="tab(2)">설정</button></nav>
+<div id="share"></div><div class="toast" id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);
+let S={key:'',zones:[],people:[],slots:[]},cur=null,K=false,mm=null,sm=null,pend=null;
+try{Object.assign(S,JSON.parse(localStorage.getItem('zs2')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('zs2',JSON.stringify(S))}catch(e){}};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2200)};
+const sorted=()=>S.slots.slice().sort((a,b)=>a.s.localeCompare(b.s));
+const T=s=>`${s.s}~${s.e}`;const slot=()=>S.slots.find(s=>s.id==cur);
+
+/* 지도 (카카오 / 목업) */
+function loadK(cb){
+  if(!S.key)return cb(false);
+  if(location.protocol==='file:'){toast('파일로 열면 카카오맵이 동작하지 않아요. 웹 주소로 열어주세요');return cb(false)}
+  const s=document.createElement('script');s.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+encodeURIComponent(S.key)+'&autoload=false';
+  s.onload=()=>kakao.maps.load(()=>cb(true));s.onerror=()=>{toast('카카오맵을 불러오지 못해 목업 지도로 표시해요');cb(false)};document.head.appendChild(s);
+}
+function Map2(id,onclick){
+  const el=$('#'+id),o={pins:[]};
+  if(K){o.m=new kakao.maps.Map(el,{center:new kakao.maps.LatLng(37.5665,126.978),level:4});
+    kakao.maps.event.addListener(o.m,'click',e=>onclick&&onclick(e.latLng.getLat(),e.latLng.getLng()))}
+  else{el.classList.add('mock');el.onclick=e=>{if(e.target!==el||!onclick)return;const r=el.getBoundingClientRect();onclick((e.clientY-r.top)/r.height*100,(e.clientX-r.left)/r.width*100)}}
+  o.pin=(lat,lng,html,fn)=>{
+    const d=document.createElement('div');d.innerHTML=html;const p=d.firstChild;if(fn)p.onclick=ev=>{ev.stopPropagation();fn()};
+    if(K){const c=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(lat,lng),content:p,yAnchor:.5,xAnchor:.5,map:o.m});o.pins.push(()=>c.setMap(null))}
+    else{p.style.left=lng+'%';p.style.top=lat+'%';el.appendChild(p);o.pins.push(()=>p.remove())}};
+  o.clear=()=>{o.pins.forEach(f=>f());o.pins=[]};
+  o.fit=pts=>{if(!K||!pts.length)return;if(pts.length==1)return o.m.setCenter(new kakao.maps.LatLng(pts[0].lat,pts[0].lng));
+    const b=new kakao.maps.LatLngBounds();pts.forEach(p=>b.extend(new kakao.maps.LatLng(p.lat,p.lng)));o.m.setBounds(b)};
+  o.relayout=()=>{if(K)o.m.relayout()};
+  return o;
+}
+const pinH=(n,c)=>`<div class="pin ${c||''}">${n}</div>`;
+
+/* 시간대 */
+function addSlot(){
+  const s=$('#ss').value,e=$('#se').value;
+  if(!s||!e)return toast('시작·종료 시간을 입력해주세요');
+  if(e<=s)return toast('종료가 시작보다 늦어야 해요');
+  if(S.slots.some(x=>x.s==s&&x.e==e))return toast('이미 있는 시간대예요');
+  const o={id:uid(),s,e,a:{}};S.slots.push(o);cur=o.id;save();
+  const [h,m]=e.split(':').map(Number);$('#ss').value=e;$('#se').value=String(Math.min(h+1,23)).padStart(2,'0')+':'+String(m).padStart(2,'0');render();
+}
+function delSlot(){if(slot()&&confirm(T(slot())+' 시간대를 삭제할까요?')){S.slots=S.slots.filter(s=>s.id!=cur);cur=sorted()[0]?.id||null;save();render()}}
+function pick(id){cur=id;render()}
+function toggle(zid){
+  const sl=slot();if(!sl)return toast('먼저 시간대를 추가해주세요');
+  if(zid in sl.a)delete sl.a[zid];else sl.a[zid]='';save();render();
+}
+function setP(zid,v){const sl=slot();if(sl){sl.a[zid]=v;save();renderTable()}}
+
+/* 구역 (설정) */
+function drawSm(){
+  if(!sm)return;sm.clear();
+  S.zones.forEach((z,i)=>sm.pin(z.lat,z.lng,pinH(i+1)));
+  if(pend)sm.pin(pend.lat,pend.lng,pinH('+','new'));
+}
+function addZone(){
+  const n=$('#zn').value.trim();
+  if(!pend)return toast('지도에서 위치를 먼저 눌러주세요');
+  if(!n)return toast('구역명을 입력해주세요');
+  S.zones.push({id:uid(),name:n,desc:$('#zd').value.trim(),lat:pend.lat,lng:pend.lng});
+  save();pend=null;$('#zn').value='';$('#zd').value='';$('#sinfo').textContent='등록했어요. 다음 구역 위치를 찍어주세요.';render();drawSm();toast('구역을 등록했어요');
+}
+function delZone(id){
+  if(!confirm('이 구역을 삭제할까요? 배정된 내용도 함께 지워져요.'))return;
+  S.zones=S.zones.filter(z=>z.id!=id);S.slots.forEach(s=>delete s.a[id]);save();render();drawSm();
+}
+function addP(){const n=$('#pn').value.trim();if(!n)return;if(S.people.includes(n))return toast('이미 등록된 이름이에요');S.people.push(n);save();$('#pn').value='';render()}
+function delP(i){S.people.splice(i,1);save();render()}
+function clearP(){if(S.people.length&&confirm('등록한 이름을 모두 지울까요?')){S.people=[];save();render()}}
+function saveKey(){S.key=$('#key').value.trim();save();location.reload()}
+
+/* 화면 */
+function tab(n){
+  [1,2].forEach(i=>{$('#s'+i).classList.toggle('on',i==n);$('#n'+i).classList.toggle('on',i==n)});
+  $('#ttl').textContent=n==1?'시간대별 구역 배정판':'설정';scrollTo(0,0);
+  if(n==2){if(!sm)sm=Map2('smap',(lat,lng)=>{pend={lat,lng};$('#sinfo').textContent='위치를 찍었어요. 구역명을 입력하고 등록하세요.';drawSm()});sm.relayout();sm.fit(S.zones);drawSm()}
+  else if(mm)mm.relayout();
+}
+const opts=sel=>'<option value="">담당자 선택</option>'+S.people.map(p=>`<option ${p==sel?'selected':''}>${esc(p)}</option>`).join('');
+function tbl(){
+  let h='';
+  sorted().forEach(sl=>{
+    const zs=S.zones.map((z,i)=>[z,i]).filter(([z])=>z.id in sl.a);
+    if(!zs.length){h+=`<tr><td><b>${T(sl)}</b></td><td colspan="2" class="m">배정된 구역 없음</td></tr>`;return}
+    zs.forEach(([z,i],k)=>{h+=`<tr>${k?'':`<td rowspan="${zs.length}"><b>${T(sl)}</b></td>`}<td>${i+1}. <b>${esc(z.name)}</b>${z.desc?`<div class="d">${esc(z.desc)}</div>`:''}</td><td>${esc(sl.a[z.id])||'미배정'}</td></tr>`});
+  });
+  return `<table><thead><tr><th>시간</th><th>구역</th><th>담당자</th></tr></thead><tbody>${h}</tbody></table>`;
+}
+function renderTable(){$('#tw').innerHTML=S.slots.length?tbl():'<div class="hint">시간대를 추가하면 배정표가 만들어져요.</div>'}
+function render(){
+  if(!cur||!slot())cur=sorted()[0]?.id||null;
+  const sl=slot();
+  $('#chips').innerHTML=sorted().map(s=>`<button class="${s.id==cur?'on':''}" onclick="pick('${s.id}')">${T(s)}</button>`).join('')||'<span class="hint">시간대를 추가해주세요.</span>';
+  $('#mt').textContent=sl?`${T(sl)} 활동 구역`:'구역 체크';
+  $('#delslot').style.display=sl?'':'none';
+  if(mm){mm.clear();S.zones.forEach((z,i)=>mm.pin(z.lat,z.lng,pinH(i+1,sl&&z.id in sl.a?'on':''),()=>toggle(z.id)))}
+  $('#zl').innerHTML=S.zones.length?S.zones.map((z,i)=>{const on=sl&&z.id in sl.a;return `<div class="zr"><input type="checkbox" ${on?'checked':''} onchange="toggle('${z.id}')"><div class="b"><b>${i+1}. ${esc(z.name)}</b><div class="d">${esc(z.desc)}</div>${on?`<select onchange="setP('${z.id}',this.value)">${opts(sl.a[z.id])}</select>`:''}</div></div>`}).join(''):'<div class="hint">등록된 구역이 없어요. 설정에서 구역을 먼저 등록하세요.</div>';
+  renderTable();
+  $('#pp').innerHTML=opts('');
+  $('#zlist').innerHTML=S.zones.map((z,i)=>`<div class="chip"><span>${i+1}. ${esc(z.name)}<div class="d">${esc(z.desc)}</div></span><button class="del" onclick="delZone('${z.id}')">삭제</button></div>`).join('')||'<div class="hint">등록된 구역이 없어요.</div>';
+  $('#pl').innerHTML=S.people.map((p,i)=>`<div class="chip"><span>${esc(p)}</span><button class="del" onclick="delP(${i})">삭제</button></div>`).join('')||'<div class="hint">등록된 이름이 없어요.</div>';
+}
+
+/* 공유 */
+const dstr=()=>{const d=new Date();return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`};
+function txt(){
+  let t=`[구역 배정표] ${dstr()}`;
+  sorted().forEach(sl=>{t+=`\n\n■ ${T(sl)}`;const zs=S.zones.filter(z=>z.id in sl.a);if(!zs.length)t+='\n- 배정 없음';zs.forEach(z=>t+=`\n- ${z.name}${z.desc?' ('+z.desc+')':''} : ${sl.a[z.id]||'미배정'}`)});
+  return t;
+}
+async function sendText(t){
+  if(navigator.share){try{await navigator.share({text:t});return}catch(e){if(e.name==='AbortError')return}}
+  await copy(t);toast('복사했어요. 카카오톡에 붙여넣어 보내세요');
+}
+async function copy(t){try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}}
+function shareText(){if(!S.slots.length)return toast('공유할 배정이 없어요');sendText(txt())}
+function sharePerson(){
+  const p=$('#pp').value;if(!p)return toast('담당자를 선택해주세요');
+  let t=`[${p}님 배정 안내] ${dstr()}`,n=0;
+  sorted().forEach(sl=>S.zones.forEach(z=>{if(sl.a[z.id]===p){n++;t+=`\n■ ${T(sl)} ${z.name}${z.desc?' - '+z.desc:''}`}}));
+  if(!n)return toast(p+'님에게 배정된 구역이 없어요');sendText(t);
+}
+async function copyTable(){
+  if(!S.slots.length)return toast('복사할 표가 없어요');
+  const r=['시간\t구역\t설명\t담당자'];
+  sorted().forEach(sl=>S.zones.filter(z=>z.id in sl.a).forEach(z=>r.push([T(sl),z.name,z.desc,sl.a[z.id]||'미배정'].join('\t'))));
+  await copy(r.join('\n'));toast('표를 복사했어요');
+}
+function loadH2C(){return new Promise((ok,no)=>{if(window.html2canvas)return ok();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function shareImg(){
+  if(!S.slots.length)return toast('공유할 배정이 없어요');
+  try{
+    $('#share').innerHTML=`<h2 style="font-size:18px;margin:0 0 10px">구역 배정표 <span style="font-weight:400;font-size:13px;color:#666">${dstr()}</span></h2>${tbl()}`;
+    await loadH2C();const cv=await html2canvas($('#share'),{scale:2,backgroundColor:'#fff'});
+    cv.toBlob(async b=>{
+      const f=new File([b],'구역배정표.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'구역 배정표'});return}catch(e){if(e.name==='AbortError')return}}
+      const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='구역배정표.png';a.click();toast('이미지를 저장했어요');
+    });
+  }catch(e){toast('이미지를 만들지 못했어요. 인터넷 연결을 확인해주세요')}
+}
+
+$('#key').value=S.key||'';
+loadK(ok=>{K=ok;mm=Map2('map');mm.fit(S.zones);render()});
+render();
+</script></body></html>
