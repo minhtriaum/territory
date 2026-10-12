@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -6,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>가두증거 구역배정</title>
 <style>
-:root{--bg:#f5f6f8;--card:#fff;--tx:#1d2330;--sub:#6b7385;--ac:#2f6fed;--bd:#e1e4ea;--dg:#d64545;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1e222b;--tx:#eceff4;--sub:#9aa3b5;--ac:#6b9bff;--bd:#2f3542;--dg:#ff7a7a}}
-:root[data-theme="dark"]{--bg:#14171d;--card:#1e222b;--tx:#eceff4;--sub:#9aa3b5;--ac:#6b9bff;--bd:#2f3542;--dg:#ff7a7a}
+:root{--bg:#f5f6f8;--card:#fff;--tx:#1d2330;--sub:#6b7385;--ac:#2f6fed;--bd:#e1e4ea;--dg:#d64545;--ok:#1f8a4c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1e222b;--tx:#eceff4;--sub:#9aa3b5;--ac:#6b9bff;--bd:#2f3542;--dg:#ff7a7a;--ok:#5fd18a}}
+:root[data-theme="dark"]{--bg:#14171d;--card:#1e222b;--tx:#eceff4;--sub:#9aa3b5;--ac:#6b9bff;--bd:#2f3542;--dg:#ff7a7a;--ok:#5fd18a}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,"Noto Sans KR","Malgun Gothic",sans-serif}
@@ -25,6 +24,7 @@ input,select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8p
 .r>*{flex:1}
 .btn{width:100%;padding:11px;border:0;border-radius:8px;background:var(--ac);color:#fff;font-size:15px;margin-top:10px}
 .btn.s{background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+.btn:disabled{opacity:.5}
 .x{flex:0 0 auto;width:auto;border:0;background:none;color:var(--dg);font-size:14px;padding:4px 8px}
 table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:14px}
 th,td{border-bottom:1px solid var(--bd);padding:8px 4px;text-align:left;vertical-align:top}
@@ -34,6 +34,9 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 .empty{color:var(--sub);text-align:center;padding:14px 0;font-size:14px}
 .rn h3{font-size:14px;margin:12px 0 4px}
 .rn div{font-size:14px;color:var(--sub);padding-left:4px}
+#who{padding:10px 14px;font-size:14px}
+#net{font-size:13px;margin-top:2px}
+#net.ok{color:var(--ok)}#net.bad{color:var(--dg)}
 #ov{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:10px;z-index:9}
 #ov img{max-width:100%;max-height:75%;background:#fff;border-radius:8px}
 #ov p{color:#fff;margin:0;font-size:14px}
@@ -46,11 +49,12 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 <div class="tabs"><button id="t1" class="on">배정</button><button id="t2">설정</button></div>
 
 <section id="p1">
+  <div id="who" class="card"><div id="whoT"></div><div id="net"></div></div>
   <div class="card">
     <label>날짜</label><input type="date" id="date">
     <label>1) 구역</label><select id="zone"></select>
     <label>2) 시간 (시작 / 종료)</label>
-    <div class="r"><input type="time" id="st" value="09:00"><input type="time" id="en" value="10:00"></div>
+    <div class="r"><input type="time" id="st" value="15:00"><input type="time" id="en" value="16:00"></div>
     <label>3) 전도인</label><select id="ppl"></select>
     <button class="btn" id="add">표에 추가</button>
   </div>
@@ -103,8 +107,20 @@ th{color:var(--sub);font-weight:600;font-size:13px}
       <h2>4) 인도자 접속 로그</h2><div id="ll"></div>
       <button class="btn s" id="lclr">로그 지우기</button>
     </div>
+    <div class="card" id="dc">
+      <h2>5) 배정 기본 시간 설정</h2>
+      <div class="empty" style="padding:0 0 6px;text-align:left">[배정] 화면을 열 때 시간 입력란에 미리 채워지는 값입니다.</div>
+      <div class="r"><div><label>기본 시작</label><input type="time" id="ds"></div><div><label>기본 종료</label><input type="time" id="de"></div></div>
+      <button class="btn" id="dsave">기본 시간 저장</button>
+    </div>
+    <div class="card" id="ic" style="display:none">
+      <h2>6) 이 기기의 기존 데이터 가져오기</h2>
+      <div class="empty" style="padding:0 0 6px;text-align:left">서버 저장 방식으로 바꾸기 전에 이 기기에 저장돼 있던 구역·전도인·계정을 서버로 옮깁니다. 이미 있는 항목은 건너뛰고, 가져온 계정은 첫 로그인 때 비밀번호를 다시 바꿔야 합니다.</div>
+      <div id="icn" style="font-size:14px"></div>
+      <button class="btn" id="imp">서버로 가져오기</button>
+    </div>
     <div class="card" id="vc">
-      <h2>5) 버전 / 릴리즈 노트</h2><div id="vv" class="rn"></div>
+      <h2>7) 버전 / 릴리즈 노트</h2><div id="vv" class="rn"></div>
     </div>
     <button class="btn s" id="pwopen">내 비밀번호 변경</button>
     <button class="btn s" id="lout">로그아웃</button>
@@ -115,14 +131,27 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 <div id="ov"><img id="oi" alt=""><p>이미지를 길게 눌러 저장하세요</p><button class="btn" id="oc">닫기</button></div>
 
 <script>
+/* ★ 설정: Google Apps Script 웹앱 주소(…/exec)를 따옴표 안에 붙여넣으세요.
+   비워 두면 "서버 미설정" 상태로, 예전처럼 이 기기에만 저장됩니다. */
+const API_URL='https://script.google.com/macros/s/AKfycbwd3NFUlxVUtEmqQ7OePQN6MJvPWgdQ8qHq2VyjWeU8iLBXOvYfmvjwjE1KtijKLqFU/exec';
+
 const $=id=>document.getElementById(id);
-const KEY='zoneAssignV1';
-const VERSION='261012_1500';
+const VERSION='261012_1630';
 const RELEASES=[
+ {v:'261012_1630',items:[
+  '구역·전도인 명단, 계정, 기본 시간을 서버(Google 시트)에 저장 — 모든 계정·기기에서 같은 명단 공유',
+  '비밀번호는 서버에서 암호화(해시) 저장, 로그인 검증도 서버에서 처리',
+  '접속 로그는 모든 기기의 인도자 로그인을 서버에 기록',
+  '배정표(날짜·시간·인원)는 기존처럼 이 기기에 저장하고 이미지/텍스트로 공유',
+  '이 기기의 기존 데이터를 서버로 가져오기 기능 추가'
+ ]},
+ {v:'261012_1600',items:[
+  '[배정] 화면에 로그인된 계정(이름) 표시',
+  '[배정] 시간 기본값을 오후 3시(15:00~16:00)로 설정, 설정 페이지에서 변경 가능 (관리자 전용)'
+ ]},
  {v:'261012_1500',items:[
   '설정 페이지에 버전 정보·릴리즈 노트 추가 (관리자 전용)',
-  '신규 계정은 최초 로그인 시 비밀번호 변경 필수',
-  '로그인한 사용자가 직접 비밀번호 변경 가능',
+  '신규 계정은 최초 로그인 시 비밀번호 변경 필수, 로그인한 사용자가 직접 변경 가능',
   '관리자 계정에서 인도자 계정 비밀번호 초기화 (1234)',
   '배정표를 구역별로 분리: 같은 구역은 시간 행으로 추가, 새 구역은 표를 새로 만들어 하단에 추가'
  ]},
@@ -132,14 +161,107 @@ const RELEASES=[
   '계정 등록은 관리자 전용, 인도자 접속 로그'
  ]}
 ];
-let S={zones:[],people:[],accts:[{id:'admin',pw:'1234',name:'관리자',role:'admin'}],rows:[],date:'',logs:[]};
-try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v)S=Object.assign(S,v)}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-let authed=false,cur=null,showPw=false;
-S.accts.forEach(a=>{a.role=a.role||(a.id==='admin'?'admin':'guide')});if(!S.logs)S.logs=[];
 
+/* ===== core: 서버(Apps Script)와 로컬 모드가 공유하는 동일한 로직 ===== */
+function core(q,db,H,now){
+  const pub=()=>({zones:db.zones,people:db.people,defSt:db.defSt,defEn:db.defEn});
+  if(q.action==='load')return{res:{ok:true,state:pub()},dirty:false};
+  const u=db.accts.find(x=>x.id===q.id&&x.pw===H(String(q.pw||'')));
+  if(!u)return{res:{ok:false,error:'auth'},dirty:false};
+  const adm=u.role==='admin';
+  const me=()=>({id:u.id,name:u.name,role:u.role,mustChange:!!u.mustChange});
+  const adminData=()=>({accts:db.accts.map(a=>({id:a.id,name:a.name,role:a.role,mustChange:!!a.mustChange})),logs:db.logs.slice(-100).reverse()});
+  const ok=d=>({res:Object.assign({ok:true,user:me(),state:pub()},adm?{admin:adminData()}:{}),dirty:!!d});
+  const err=e=>({res:{ok:false,error:e},dirty:false});
+  const a=q.action,s=v=>String(v==null?'':v).trim();
+  if(a==='login'){
+    if(!adm)db.logs.push({t:now,id:u.id,name:u.name});
+    if(db.logs.length>300)db.logs=db.logs.slice(-300);
+    return ok(true);
+  }
+  if(a==='changePw'){
+    const np=String(q.newPw||'');
+    if(np.length<4)return err('short');
+    if(H(np)===u.pw)return err('same');
+    u.pw=H(np);u.mustChange=false;return ok(true);
+  }
+  if(u.mustChange)return err('mustChange');
+  if(a==='adminData')return adm?ok(false):err('forbidden');
+  if(a==='zoneAdd'){const n=s(q.n);if(!n)return err('empty');if(db.zones.some(z=>z.n===n))return err('dup');db.zones.push({n,d:s(q.d)});return ok(true)}
+  if(a==='zoneDel'){const n=s(q.n);db.zones=db.zones.filter(z=>z.n!==n);return ok(true)}
+  if(a==='peopleAdd'){const n=s(q.n);if(!n)return err('empty');if(db.people.includes(n))return err('dup');db.people.push(n);return ok(true)}
+  if(a==='peopleDel'){const n=s(q.n);db.people=db.people.filter(p=>p!==n);return ok(true)}
+  if(!adm)return err('forbidden');
+  if(a==='setDefaults'){const x=s(q.defSt),y=s(q.defEn);if(!x||!y||y<=x)return err('time');db.defSt=x;db.defEn=y;return ok(true)}
+  if(a==='acctAdd'){
+    const id=s(q.aid),pw=String(q.apw||''),nm=s(q.anm);
+    if(!id||!pw||!nm)return err('empty');
+    if(db.accts.some(z=>z.id===id))return err('dup');
+    db.accts.push({id,name:nm,role:'guide',pw:H(pw),mustChange:true});return ok(true);
+  }
+  if(a==='acctDel'){const t=db.accts.find(z=>z.id===s(q.aid));if(!t||t.role==='admin')return err('forbidden');db.accts=db.accts.filter(z=>z!==t);return ok(true)}
+  if(a==='acctReset'){const t=db.accts.find(z=>z.id===s(q.aid));if(!t||t.role==='admin')return err('forbidden');t.pw=H('1234');t.mustChange=true;return ok(true)}
+  if(a==='logsClear'){db.logs=[];return ok(true)}
+  return err('unknown');
+}
+/* ===== /core ===== */
+
+
+/* ---------- 저장소 ---------- */
+const LK='zoneAssignRows',CK='zoneAssignCache',OLD='zoneAssignV1';
+const jget=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?f:v}catch(e){return f}};
+const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let L=jget(LK,null);                       // 이 기기 전용: 배정표
+if(!L){const o=jget(OLD,{});L={rows:o.rows||[],date:o.date||''}}
+let D=jget(CK,null)||{zones:[],people:[],defSt:'15:00',defEn:'16:00'};   // 공용(서버) 사본
+let AD={accts:[],logs:[]};                  // 관리자용(서버)
+const save=()=>jset(LK,L);
+let authed=false,cur=null,cred=null,showPw=false,netOk=null,defApplied=false;
+
+/* 서버 미설정 시: 같은 core 로직을 이 기기 저장소에서 실행 */
+function localRun(q){
+  const o=jget(OLD,{});
+  const db={zones:o.zones||[],people:o.people||[],logs:o.logs||[],defSt:o.defSt||'15:00',defEn:o.defEn||'16:00',
+    accts:(o.accts&&o.accts.length)?o.accts:[{id:'admin',name:'관리자',role:'admin',pw:'1234',mustChange:true}]};
+  db.accts.forEach(a=>{a.role=a.role||(a.id==='admin'?'admin':'guide')});
+  const r=core(q,db,x=>x,new Date().toLocaleString('ko-KR'));
+  if(r.dirty)jset(OLD,Object.assign(o,db));
+  return r.res;
+}
+async function call(action,extra){
+  const q=Object.assign({action},cred?{id:cred.id,pw:cred.pw}:{},extra||{});
+  if(!API_URL)return localRun(q);
+  try{
+    const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(q)});
+    const j=await r.json();netOk=true;renderNet();return j;
+  }catch(e){netOk=false;renderNet();return{ok:false,error:'net'}}
+}
+function apply(r){
+  if(r&&r.state){D=r.state;jset(CK,D)}
+  if(r&&r.admin)AD=r.admin;
+  if(r&&r.user&&authed)cur=r.user;
+}
+async function act(action,extra){
+  const r=await call(action,extra);
+  if(r.ok){apply(r);render();gate();return r}
+  const m={net:'서버에 연결할 수 없습니다. 잠시 후 다시 시도하세요',dup:'이미 있는 항목입니다',empty:'입력값을 확인하세요',time:'시작/종료 시간을 확인하세요',forbidden:'권한이 없습니다'}[r.error];
+  if(r.error==='auth'){alert('로그인이 만료되었거나 비밀번호가 변경되었습니다. 다시 로그인하세요');logout()}
+  else alert(m||('처리하지 못했습니다 ('+r.error+')'));
+  return r;
+}
+async function refresh(){
+  const r=await call((authed&&cur&&cur.role==='admin')?'adminData':'load');
+  if(r.ok){apply(r);if(!defApplied){applyDef();defApplied=true}render();gate()}
+}
+
+/* ---------- 화면 ---------- */
 function el(t,txt,cls){const e=document.createElement(t);if(txt!=null)e.textContent=txt;if(cls)e.className=cls;return e}
-function fillSel(sel,arr,f){sel.textContent='';if(!arr.length){sel.appendChild(new Option('(설정에서 먼저 등록)',''));return}arr.forEach(a=>sel.appendChild(new Option(f(a),f(a))))}
+function fillSel(sel,arr,f){
+  const v=sel.value;sel.textContent='';
+  if(!arr.length){sel.appendChild(new Option('(설정에서 먼저 등록)',''));return}
+  arr.forEach(a=>sel.appendChild(new Option(f(a),f(a))));
+  if(v&&arr.some(a=>f(a)===v))sel.value=v;
+}
 function listUI(box,arr,label,sub,del){
   box.textContent='';
   if(!arr.length){box.appendChild(el('div','등록된 항목 없음','empty'));return}
@@ -149,20 +271,28 @@ function listUI(box,arr,label,sub,del){
 
 /* 구역별 그룹: 구역 순서는 최초 배정 순, 구역 내에서는 시간순 */
 function byZone(){
-  const order=[];S.rows.forEach(r=>{if(!order.includes(r.zone))order.push(r.zone)});
+  const order=[];L.rows.forEach(r=>{if(!order.includes(r.zone))order.push(r.zone)});
   return order.map(zone=>{
     const t=new Map();
-    S.rows.filter(r=>r.zone===zone).sort((a,b)=>a.st.localeCompare(b.st)||a.en.localeCompare(b.en)).forEach(r=>{
+    L.rows.filter(r=>r.zone===zone).sort((a,b)=>a.st.localeCompare(b.st)||a.en.localeCompare(b.en)).forEach(r=>{
       const k=r.st+'|'+r.en;if(!t.has(k))t.set(k,{st:r.st,en:r.en,rs:[]});t.get(k).rs.push(r)});
     return{zone,slots:[...t.values()].map(x=>(x.ps=x.rs.map(r=>r.p),x))};
   });
 }
 
+function renderNet(){
+  const n=$('net');
+  if(!API_URL){n.className='bad';n.textContent='⚠ 서버 미설정 · 이 기기에만 저장됩니다'}
+  else if(netOk===false){n.className='bad';n.textContent='⚠ 서버 연결 실패 · 마지막으로 받은 명단을 표시 중'}
+  else if(netOk){n.className='ok';n.textContent='● 서버 연결됨 · 명단 공유 중'}
+  else{n.className='';n.textContent='서버 연결 중…'}
+}
+
 function render(){
-  fillSel($('zone'),S.zones,z=>z.n);fillSel($('ppl'),S.people,p=>p);
-  $('date').value=S.date||'';
+  fillSel($('zone'),D.zones,z=>z.n);fillSel($('ppl'),D.people,p=>p);
+  $('date').value=L.date||'';
   const box=$('tbl');box.textContent='';
-  if(!S.rows.length){box.appendChild(el('div','추가된 배정이 없습니다','empty'))}
+  if(!L.rows.length){box.appendChild(el('div','추가된 배정이 없습니다','empty'))}
   else byZone().forEach(z=>{
     const t=el('table'),h=el('tr');['구역','시간','인원'].forEach(x=>h.appendChild(el('th',x)));t.appendChild(h);
     z.slots.forEach((s,i)=>{
@@ -170,16 +300,16 @@ function render(){
       if(i===0){const c=el('td',z.zone);c.rowSpan=z.slots.length;c.style.fontWeight='700';tr.appendChild(c)}
       tr.appendChild(el('td',s.st+'~'+s.en));
       const td=el('td');
-      s.rs.forEach(r=>{const w=el('div',r.p);const b=el('button','✕','x');b.onclick=()=>{S.rows=S.rows.filter(y=>y!==r);save();render()};w.appendChild(b);td.appendChild(w)});
+      s.rs.forEach(r=>{const w=el('div',r.p);const b=el('button','✕','x');b.onclick=()=>{L.rows=L.rows.filter(y=>y!==r);save();render()};w.appendChild(b);td.appendChild(w)});
       tr.appendChild(td);t.appendChild(tr);
     });
     box.appendChild(t);
   });
-  listUI($('zl'),S.zones,z=>z.n,z=>z.d,i=>{S.zones.splice(i,1);save();render()});
-  listUI($('pl'),S.people,p=>p,null,i=>{S.people.splice(i,1);save();render()});
+  listUI($('zl'),D.zones,z=>z.n,z=>z.d,i=>{act('zoneDel',{n:D.zones[i].n})});
+  listUI($('pl'),D.people,p=>p,null,i=>{act('peopleDel',{n:D.people[i]})});
 
   const al=$('al');al.textContent='';
-  const gl=S.accts.filter(a=>a.role!=='admin');
+  const gl=AD.accts.filter(a=>a.role!=='admin');
   if(!gl.length)al.appendChild(el('div','등록된 계정 없음','empty'));
   gl.forEach(a=>{
     const d=el('div',null,'li'),l=el('div',a.id+' ('+a.name+')');
@@ -187,38 +317,41 @@ function render(){
     d.appendChild(l);
     const bw=el('div'),rb=el('button','비번 초기화','x'),db=el('button','삭제','x');
     rb.style.color='var(--ac)';
-    rb.onclick=()=>{if(confirm(a.id+' 계정의 비밀번호를 1234로 초기화할까요?\n다음 로그인 때 변경해야 합니다.')){a.pw='1234';a.mustChange=true;save();render()}};
-    db.onclick=()=>{if(confirm(a.id+' 계정을 삭제할까요?')){S.accts.splice(S.accts.indexOf(a),1);save();render()}};
+    rb.onclick=()=>{if(confirm(a.id+' 계정의 비밀번호를 1234로 초기화할까요?\n다음 로그인 때 변경해야 합니다.'))act('acctReset',{aid:a.id})};
+    db.onclick=()=>{if(confirm(a.id+' 계정을 삭제할까요?'))act('acctDel',{aid:a.id})};
     bw.appendChild(rb);bw.appendChild(db);d.appendChild(bw);al.appendChild(d);
   });
 
   const ll=$('ll');ll.textContent='';
-  const L=S.logs.slice().reverse();
-  if(!L.length)ll.appendChild(el('div','접속 기록 없음','empty'));
-  L.slice(0,100).forEach(l=>{const d=el('div',null,'li');const x=el('div',l.name+' ('+l.id+')');x.appendChild(el('small',l.t));d.appendChild(x);ll.appendChild(d)});
+  if(!AD.logs.length)ll.appendChild(el('div','접속 기록 없음','empty'));
+  AD.logs.forEach(l=>{const d=el('div',null,'li');const x=el('div',l.name+' ('+l.id+')');x.appendChild(el('small',l.t));d.appendChild(x);ll.appendChild(d)});
 
   const vv=$('vv');vv.textContent='';
   const cv=el('div','현재 버전  '+VERSION);cv.style.cssText='font-size:16px;font-weight:700;color:var(--tx)';vv.appendChild(cv);
   RELEASES.forEach(r=>{vv.appendChild(el('h3',r.v));r.items.forEach(i=>vv.appendChild(el('div','· '+i)))});
+
+  const o=jget(OLD,{}),n=[(o.zones||[]).length,(o.people||[]).length,(o.accts||[]).filter(a=>a.id!=='admin'&&a.role!=='admin').length];
+  $('icn').textContent='이 기기에 남아 있는 데이터: 구역 '+n[0]+'개, 전도인 '+n[1]+'명, 계정 '+n[2]+'개';
+  $('ic').dataset.has=(API_URL&&(n[0]+n[1]+n[2])>0)?'1':'';
 }
 
 function tab(n){$('p1').style.display=n==1?'':'none';$('p2').style.display=n==2?'':'none';$('t1').className=n==1?'on':'';$('t2').className=n==2?'on':''}
 $('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
 
-$('date').onchange=e=>{S.date=e.target.value;save()};
+$('date').onchange=e=>{L.date=e.target.value;save()};
 $('add').onclick=()=>{
   const zone=$('zone').value,p=$('ppl').value,st=$('st').value,en=$('en').value;
   if(!zone||!p){alert('구역과 전도인을 선택하세요 (설정에서 등록)');return}
   if(!st||!en||en<=st){alert('시작/종료 시간을 확인하세요');return}
-  if(S.rows.some(r=>r.zone===zone&&r.st===st&&r.en===en&&r.p===p)){alert('이미 추가된 인원입니다');return}
-  S.rows.push({zone,st,en,p});save();render();
+  if(L.rows.some(r=>r.zone===zone&&r.st===st&&r.en===en&&r.p===p)){alert('이미 추가된 인원입니다');return}
+  L.rows.push({zone,st,en,p});save();render();
 };
-$('clr').onclick=()=>{if(S.rows.length&&confirm('표를 모두 비울까요?')){S.rows=[];save();render()}};
+$('clr').onclick=()=>{if(L.rows.length&&confirm('표를 모두 비울까요?')){L.rows=[];save();render()}};
 
-function title(){return '가두증거 구역배정'+(S.date?' ('+S.date+')':'')}
+function title(){return '가두증거 구역배정'+(L.date?' ('+L.date+')':'')}
 function toText(){return title()+'\n\n'+byZone().map(z=>'['+z.zone+']\n'+z.slots.map(s=>s.st+'~'+s.en+' | '+s.ps.join(', ')).join('\n')).join('\n\n')}
 $('shT').onclick=async()=>{
-  if(!S.rows.length){alert('공유할 내용이 없습니다');return}
+  if(!L.rows.length){alert('공유할 내용이 없습니다');return}
   const t=toText();
   try{if(navigator.share){await navigator.share({text:t});return}}catch(e){if(e.name==='AbortError')return}
   try{await navigator.clipboard.writeText(t);alert('텍스트가 복사되었습니다')}catch(e){prompt('복사해서 사용하세요',t)}
@@ -226,7 +359,7 @@ $('shT').onclick=async()=>{
 
 function wrap(g,txt,w){const out=[];let line='';for(const ch of txt){if(g.measureText(line+ch).width>w&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
 $('shI').onclick=()=>{
-  if(!S.rows.length){alert('공유할 내용이 없습니다');return}
+  if(!L.rows.length){alert('공유할 내용이 없습니다');return}
   const Z=byZone(),W=720,RH=56,PX=420,PW=276,c=document.createElement('canvas'),g=c.getContext('2d'),F='"Noto Sans KR","Malgun Gothic",sans-serif';
   g.font='24px '+F;
   Z.forEach(z=>z.slots.forEach(s=>{s.ln=wrap(g,s.ps.join(', '),PW);s.h=Math.max(RH,32*s.ln.length+20)}));
@@ -257,6 +390,7 @@ $('shI').onclick=()=>{
 };
 $('oc').onclick=()=>{$('ov').style.display='none'};
 
+/* ---------- 로그인 / 설정 ---------- */
 function gate(){
   const forced=authed&&cur&&cur.mustChange,ad=authed&&cur&&cur.role==='admin',sh=v=>v?'':'none';
   $('login').style.display=sh(!authed);
@@ -264,38 +398,65 @@ function gate(){
   $('pwc').style.display=sh(authed&&(forced||showPw));
   $('pwcan').style.display=sh(!forced);
   $('pwm').textContent=forced?'최초 로그인입니다. 초기 비밀번호를 반드시 변경해야 합니다.':'';
-  $('ac').style.display=sh(ad);$('lc').style.display=sh(ad);$('vc').style.display=sh(ad);
+  $('ac').style.display=sh(ad);$('lc').style.display=sh(ad);$('vc').style.display=sh(ad);$('dc').style.display=sh(ad);
+  $('ic').style.display=sh(ad&&$('ic').dataset.has==='1');
+  $('whoT').textContent=(authed&&cur)?'로그인: '+cur.name+' ('+cur.id+')':'로그인 안 됨 · 설정 탭에서 로그인하세요';
+  renderNet();
 }
-$('lgo').onclick=()=>{
-  const a=S.accts.find(x=>x.id===$('lid').value.trim()&&x.pw===$('lpw').value);
-  if(a){
-    authed=true;cur=a;showPw=false;$('lerr').textContent='';$('lpw').value='';
-    if(a.role!=='admin'){S.logs.push({id:a.id,name:a.name,t:new Date().toLocaleString('ko-KR')});if(S.logs.length>300)S.logs=S.logs.slice(-300);save()}
-    render();gate();
-  }else $('lerr').textContent='ID 또는 비밀번호가 올바르지 않습니다';
+function applyDef(){$('st').value=D.defSt;$('en').value=D.defEn;$('ds').value=D.defSt;$('de').value=D.defEn}
+function logout(){authed=false;cur=null;cred=null;AD={accts:[],logs:[]};showPw=false;render();gate()}
+
+$('lgo').onclick=async()=>{
+  const id=$('lid').value.trim(),pw=$('lpw').value;
+  if(!id||!pw){$('lerr').textContent='ID와 비밀번호를 입력하세요';return}
+  $('lgo').disabled=true;cred={id,pw};
+  const r=await call('login');
+  $('lgo').disabled=false;
+  if(r.ok){authed=true;cur=r.user;showPw=false;$('lerr').textContent='';$('lpw').value='';apply(r);render();gate()}
+  else{cred=null;$('lerr').textContent=r.error==='net'?'서버에 연결할 수 없습니다':'ID 또는 비밀번호가 올바르지 않습니다'}
 };
-$('lout').onclick=()=>{authed=false;cur=null;showPw=false;gate()};
+$('lout').onclick=logout;
 $('pwopen').onclick=()=>{showPw=true;$('pwe').textContent='';gate()};
 $('pwcan').onclick=()=>{showPw=false;$('np').value=$('np2').value='';gate()};
-$('pwgo').onclick=()=>{
+$('pwgo').onclick=async()=>{
   const a=$('np').value,b=$('np2').value,e=m=>{$('pwe').textContent=m};
   if(a.length<4){e('4자 이상 입력하세요');return}
   if(a!==b){e('확인 값이 일치하지 않습니다');return}
-  if(a===cur.pw){e('기존 비밀번호와 다르게 입력하세요');return}
-  cur.pw=a;cur.mustChange=false;save();showPw=false;$('np').value=$('np2').value='';e('');render();gate();
+  if(a===cred.pw){e('기존 비밀번호와 다르게 입력하세요');return}
+  const r=await call('changePw',{newPw:a});
+  if(r.ok){cred.pw=a;showPw=false;$('np').value=$('np2').value='';e('');apply(r);cur=r.user;render();gate()}
+  else e(r.error==='net'?'서버에 연결할 수 없습니다':r.error==='same'?'기존 비밀번호와 다르게 입력하세요':'변경하지 못했습니다');
 };
-$('lclr').onclick=()=>{if(confirm('접속 로그를 모두 지울까요?')){S.logs=[];save();render()}};
-$('zadd').onclick=()=>{const n=$('zn').value.trim();if(!n)return;if(S.zones.some(z=>z.n===n)){alert('이미 있는 구역명입니다');return}
-  S.zones.push({n,d:$('zd').value.trim()});$('zn').value=$('zd').value='';save();render()};
-$('padd').onclick=()=>{const n=$('pn').value.trim();if(!n||S.people.includes(n))return;S.people.push(n);$('pn').value='';save();render()};
-$('aadd').onclick=()=>{const id=$('aid').value.trim(),pw=$('apw').value,nm=$('anm').value.trim();
-  if(!id||!pw||!nm){alert('ID/초기 비밀번호/이름을 모두 입력하세요');return}
-  if(S.accts.some(a=>a.id===id)){alert('이미 있는 ID입니다');return}
-  S.accts.push({id,pw,name:nm,role:'guide',mustChange:true});$('aid').value=$('apw').value=$('anm').value='';save();render()};
+$('lclr').onclick=()=>{if(confirm('접속 로그를 모두 지울까요?'))act('logsClear')};
+$('zadd').onclick=async()=>{const n=$('zn').value.trim();if(!n)return;
+  const r=await act('zoneAdd',{n,d:$('zd').value.trim()});if(r.ok)$('zn').value=$('zd').value=''};
+$('padd').onclick=async()=>{const n=$('pn').value.trim();if(!n)return;const r=await act('peopleAdd',{n});if(r.ok)$('pn').value=''};
+$('aadd').onclick=async()=>{
+  const aid=$('aid').value.trim(),apw=$('apw').value,anm=$('anm').value.trim();
+  if(!aid||!apw||!anm){alert('ID/초기 비밀번호/이름을 모두 입력하세요');return}
+  const r=await act('acctAdd',{aid,apw,anm});if(r.ok)$('aid').value=$('apw').value=$('anm').value='';
+};
+$('dsave').onclick=async()=>{
+  const a=$('ds').value,b=$('de').value;if(!a||!b||b<=a){alert('시작/종료 시간을 확인하세요');return}
+  const r=await act('setDefaults',{defSt:a,defEn:b});if(r.ok){applyDef();alert('기본 시간이 저장되었습니다')}
+};
+$('imp').onclick=async()=>{
+  const o=jget(OLD,{});
+  const Z=o.zones||[],P=o.people||[],A=(o.accts||[]).filter(a=>a.id!=='admin'&&a.role!=='admin');
+  if(!confirm('이 기기의 구역 '+Z.length+'개, 전도인 '+P.length+'명, 계정 '+A.length+'개를 서버로 가져올까요?'))return;
+  $('imp').disabled=true;let n=0,fail=false;
+  const go=async(a,x)=>{if(fail)return;const r=await call(a,x);if(r.ok){n++;apply(r)}else if(r.error==='net')fail=true};
+  for(const z of Z)await go('zoneAdd',{n:z.n,d:z.d||''});
+  for(const p of P)await go('peopleAdd',{n:p});
+  for(const a of A)await go('acctAdd',{aid:a.id,apw:a.pw,anm:a.name});
+  $('imp').disabled=false;render();gate();
+  alert(fail?'서버 연결이 끊겨 일부만 가져왔습니다. 다시 시도하세요.':'가져오기 완료 (새로 추가된 항목 '+n+'개)');
+};
 
-render();gate();
+applyDef();render();gate();
+refresh().then(()=>{gate()});
+setInterval(refresh,30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 </script>
 </body>
 </html>
-
-</body></html>
