@@ -46,10 +46,33 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 <body>
 <main>
 <h1>가두증거 구역배정</h1>
+<div id="gw">
+  <div id="login" class="card">
+    <h2>로그인</h2>
+    <div style="font-size:14px;color:var(--sub)">계정으로 로그인해야 사용할 수 있습니다.</div>
+    <label>ID</label><input id="lid" autocapitalize="off">
+    <label>비밀번호</label><input id="lpw" type="password">
+    <button class="btn" id="lgo">로그인</button>
+    <div id="lerr" class="empty" style="color:var(--dg);padding:6px 0 0"></div>
+  </div>
+
+  <div id="pwc" class="card" style="display:none">
+    <h2>비밀번호 변경</h2>
+    <div id="pwm" style="font-size:14px;color:var(--sub)"></div>
+    <label>새 비밀번호 (4자 이상)</label><input id="np" type="password">
+    <label>새 비밀번호 확인</label><input id="np2" type="password">
+    <button class="btn" id="pwgo">변경</button>
+    <button class="btn s" id="pwcan">취소</button>
+    <div id="pwe" class="empty" style="color:var(--dg);padding:6px 0 0"></div>
+  </div>
+
+</div>
+
+<div id="app">
 <div class="tabs"><button id="t1" class="on">배정</button><button id="t2">설정</button></div>
 
 <section id="p1">
-  <div id="who" class="card"><div id="whoT"></div><div id="net"></div></div>
+  <div id="who" class="card"><div class="r"><div id="whoT" style="flex:1"></div><button class="x" id="lout2" style="flex:0 0 auto;color:var(--sub)">로그아웃</button></div><div id="net"></div></div>
   <div class="card">
     <label>날짜</label><input type="date" id="date">
     <label>1) 구역</label><select id="zone"></select>
@@ -67,25 +90,7 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 </section>
 
 <section id="p2" style="display:none">
-  <div id="login" class="card">
-    <h2>로그인</h2>
-    <label>ID</label><input id="lid" autocapitalize="off">
-    <label>비밀번호</label><input id="lpw" type="password">
-    <button class="btn" id="lgo">로그인</button>
-    <div id="lerr" class="empty" style="color:var(--dg);padding:6px 0 0"></div>
-  </div>
-
-  <div id="pwc" class="card" style="display:none">
-    <h2>비밀번호 변경</h2>
-    <div id="pwm" style="font-size:14px;color:var(--sub)"></div>
-    <label>새 비밀번호 (4자 이상)</label><input id="np" type="password">
-    <label>새 비밀번호 확인</label><input id="np2" type="password">
-    <button class="btn" id="pwgo">변경</button>
-    <button class="btn s" id="pwcan">취소</button>
-    <div id="pwe" class="empty" style="color:var(--dg);padding:6px 0 0"></div>
-  </div>
-
-  <div id="adm" style="display:none">
+  <div id="adm">
     <div class="card">
       <h2>1) 구역 등록</h2>
       <input id="zn" placeholder="구역명"><label>구역 설명</label><input id="zd" placeholder="예) 역 2번 출구 앞">
@@ -126,6 +131,7 @@ th{color:var(--sub);font-weight:600;font-size:13px}
     <button class="btn s" id="lout">로그아웃</button>
   </div>
 </section>
+</div>
 </main>
 
 <div id="ov"><img id="oi" alt=""><p>이미지를 길게 눌러 저장하세요</p><button class="btn" id="oc">닫기</button></div>
@@ -133,11 +139,20 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 <script>
 /* ★ 설정: Google Apps Script 웹앱 주소(…/exec)를 따옴표 안에 붙여넣으세요.
    비워 두면 "서버 미설정" 상태로, 예전처럼 이 기기에만 저장됩니다. */
-const API_URL='https://script.google.com/macros/s/AKfycbwd3NFUlxVUtEmqQ7OePQN6MJvPWgdQ8qHq2VyjWeU8iLBXOvYfmvjwjE1KtijKLqFU/exec';
+const API_URL='';
 
 const $=id=>document.getElementById(id);
-const VERSION='261012_1630';
+const VERSION='261012_1950';
 const RELEASES=[
+ {v:'261012_1950',items:[
+  '[배정] 표 구성을 구역 / 구역설명 / 시간·인원 순으로 변경 (화면, 이미지 공유, 텍스트 공유 동일)'
+ ]},
+ {v:'261012_1640',items:[
+  '페이지 전체 로그인 추가: 로그인해야 [배정]·[설정] 사용 가능',
+  '로그인 유지(최대 30일, 로그아웃 시 해제): 비밀번호는 기기에 저장하지 않고 서버가 발급한 토큰만 저장',
+  '구역·전도인 명단은 로그인한 계정에게만 제공',
+  '인도자 접속 로그: 로그인과 접속 재개(30분 간격) 기록'
+ ]},
  {v:'261012_1630',items:[
   '구역·전도인 명단, 계정, 기본 시간을 서버(Google 시트)에 저장 — 모든 계정·기기에서 같은 명단 공유',
   '비밀번호는 서버에서 암호화(해시) 저장, 로그인 검증도 서버에서 처리',
@@ -163,27 +178,42 @@ const RELEASES=[
 ];
 
 /* ===== core: 서버(Apps Script)와 로컬 모드가 공유하는 동일한 로직 ===== */
-function core(q,db,H,now){
-  const pub=()=>({zones:db.zones,people:db.people,defSt:db.defSt,defEn:db.defEn});
-  if(q.action==='load')return{res:{ok:true,state:pub()},dirty:false};
-  const u=db.accts.find(x=>x.id===q.id&&x.pw===H(String(q.pw||'')));
-  if(!u)return{res:{ok:false,error:'auth'},dirty:false};
-  const adm=u.role==='admin';
-  const me=()=>({id:u.id,name:u.name,role:u.role,mustChange:!!u.mustChange});
-  const adminData=()=>({accts:db.accts.map(a=>({id:a.id,name:a.name,role:a.role,mustChange:!!a.mustChange})),logs:db.logs.slice(-100).reverse()});
-  const ok=d=>({res:Object.assign({ok:true,user:me(),state:pub()},adm?{admin:adminData()}:{}),dirty:!!d});
+function core(q,db,H,now,ms,rnd){
+  db.sessions=db.sessions||[];
   const err=e=>({res:{ok:false,error:e},dirty:false});
   const a=q.action,s=v=>String(v==null?'':v).trim();
-  if(a==='login'){
-    if(!adm)db.logs.push({t:now,id:u.id,name:u.name});
-    if(db.logs.length>300)db.logs=db.logs.slice(-300);
-    return ok(true);
+  let u=null;
+  if(q.token&&a!=='login'){
+    const x=db.sessions.find(z=>z.tk===q.token&&z.exp>ms);
+    if(x)u=db.accts.find(z=>z.id===x.id)||null;
+  }else if(q.id){
+    u=db.accts.find(z=>z.id===q.id&&z.pw===H(String(q.pw||'')))||null;
   }
+  if(!u)return err('auth');
+  const adm=u.role==='admin';
+  const pub=()=>({zones:db.zones,people:db.people,defSt:db.defSt,defEn:db.defEn});
+  const me=()=>({id:u.id,name:u.name,role:u.role,mustChange:!!u.mustChange});
+  const adminData=()=>({accts:db.accts.map(x=>({id:x.id,name:x.name,role:x.role,mustChange:!!x.mustChange})),logs:db.logs.slice(-100).reverse()});
+  const ok=(d,extra)=>({res:Object.assign({ok:true,user:me(),state:pub()},adm?{admin:adminData()}:{},extra||{}),dirty:!!d});
+  const dropSessions=(id,keep)=>{db.sessions=db.sessions.filter(z=>z.id!==id||z.tk===keep)};
+  const addLog=()=>{if(!adm){db.logs.push({t:now,id:u.id,name:u.name,ms});if(db.logs.length>300)db.logs=db.logs.slice(-300)}};
+
+  if(a==='login'){
+    db.sessions=db.sessions.filter(z=>z.exp>ms).slice(-500);
+    const tk=rnd();db.sessions.push({tk,id:u.id,exp:ms+30*864e5});
+    addLog();return ok(true,{token:tk});
+  }
+  if(a==='resume'){
+    const fresh=!adm&&!db.logs.some(l=>l.id===u.id&&l.ms>ms-18e5);
+    if(fresh)addLog();return ok(fresh);
+  }
+  if(a==='load')return ok(false);
+  if(a==='logout'){db.sessions=db.sessions.filter(z=>z.tk!==q.token);return{res:{ok:true},dirty:true}}
   if(a==='changePw'){
     const np=String(q.newPw||'');
     if(np.length<4)return err('short');
     if(H(np)===u.pw)return err('same');
-    u.pw=H(np);u.mustChange=false;return ok(true);
+    u.pw=H(np);u.mustChange=false;dropSessions(u.id,q.token);return ok(true);
   }
   if(u.mustChange)return err('mustChange');
   if(a==='adminData')return adm?ok(false):err('forbidden');
@@ -199,8 +229,8 @@ function core(q,db,H,now){
     if(db.accts.some(z=>z.id===id))return err('dup');
     db.accts.push({id,name:nm,role:'guide',pw:H(pw),mustChange:true});return ok(true);
   }
-  if(a==='acctDel'){const t=db.accts.find(z=>z.id===s(q.aid));if(!t||t.role==='admin')return err('forbidden');db.accts=db.accts.filter(z=>z!==t);return ok(true)}
-  if(a==='acctReset'){const t=db.accts.find(z=>z.id===s(q.aid));if(!t||t.role==='admin')return err('forbidden');t.pw=H('1234');t.mustChange=true;return ok(true)}
+  if(a==='acctDel'){const t=db.accts.find(z=>z.id===s(q.aid));if(!t||t.role==='admin')return err('forbidden');db.accts=db.accts.filter(z=>z!==t);dropSessions(t.id,null);return ok(true)}
+  if(a==='acctReset'){const t=db.accts.find(z=>z.id===s(q.aid));if(!t||t.role==='admin')return err('forbidden');t.pw=H('1234');t.mustChange=true;dropSessions(t.id,null);return ok(true)}
   if(a==='logsClear'){db.logs=[];return ok(true)}
   return err('unknown');
 }
@@ -208,28 +238,31 @@ function core(q,db,H,now){
 
 
 /* ---------- 저장소 ---------- */
-const LK='zoneAssignRows',CK='zoneAssignCache',OLD='zoneAssignV1';
+const LK='zoneAssignRows',TK='zoneAssignTk',OLD='zoneAssignV1';
 const jget=(k,f)=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?f:v}catch(e){return f}};
 const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let L=jget(LK,null);                       // 이 기기 전용: 배정표
 if(!L){const o=jget(OLD,{});L={rows:o.rows||[],date:o.date||''}}
-let D=jget(CK,null)||{zones:[],people:[],defSt:'15:00',defEn:'16:00'};   // 공용(서버) 사본
+const emptyD=()=>({zones:[],people:[],defSt:'15:00',defEn:'16:00'});
+let D=emptyD();                            // 공용(서버) 사본 — 로그인 후에만 채워짐
 let AD={accts:[],logs:[]};                  // 관리자용(서버)
 const save=()=>jset(LK,L);
-let authed=false,cur=null,cred=null,showPw=false,netOk=null,defApplied=false;
+let authed=false,cur=null,tk=null,showPw=false,netOk=null,defApplied=false;
+try{tk=localStorage.getItem(TK)}catch(e){}
+const setTk=v=>{tk=v;try{v?localStorage.setItem(TK,v):localStorage.removeItem(TK)}catch(e){}};
 
 /* 서버 미설정 시: 같은 core 로직을 이 기기 저장소에서 실행 */
 function localRun(q){
   const o=jget(OLD,{});
-  const db={zones:o.zones||[],people:o.people||[],logs:o.logs||[],defSt:o.defSt||'15:00',defEn:o.defEn||'16:00',
+  const db={zones:o.zones||[],people:o.people||[],logs:o.logs||[],sessions:o.sessions||[],defSt:o.defSt||'15:00',defEn:o.defEn||'16:00',
     accts:(o.accts&&o.accts.length)?o.accts:[{id:'admin',name:'관리자',role:'admin',pw:'1234',mustChange:true}]};
   db.accts.forEach(a=>{a.role=a.role||(a.id==='admin'?'admin':'guide')});
-  const r=core(q,db,x=>x,new Date().toLocaleString('ko-KR'));
+  const r=core(q,db,x=>x,new Date().toLocaleString('ko-KR'),Date.now(),()=>Math.random().toString(36).slice(2)+Date.now().toString(36));
   if(r.dirty)jset(OLD,Object.assign(o,db));
   return r.res;
 }
 async function call(action,extra){
-  const q=Object.assign({action},cred?{id:cred.id,pw:cred.pw}:{},extra||{});
+  const q=Object.assign({action},tk?{token:tk}:{},extra||{});
   if(!API_URL)return localRun(q);
   try{
     const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(q)});
@@ -237,7 +270,7 @@ async function call(action,extra){
   }catch(e){netOk=false;renderNet();return{ok:false,error:'net'}}
 }
 function apply(r){
-  if(r&&r.state){D=r.state;jset(CK,D)}
+  if(r&&r.state)D=r.state;
   if(r&&r.admin)AD=r.admin;
   if(r&&r.user&&authed)cur=r.user;
 }
@@ -250,7 +283,8 @@ async function act(action,extra){
   return r;
 }
 async function refresh(){
-  const r=await call((authed&&cur&&cur.role==='admin')?'adminData':'load');
+  if(!authed)return;
+  const r=await call('load');
   if(r.ok){apply(r);if(!defApplied){applyDef();defApplied=true}render();gate()}
 }
 
@@ -268,6 +302,8 @@ function listUI(box,arr,label,sub,del){
   arr.forEach((a,i)=>{const d=el('div',null,'li');const l=el('div',label(a));const s=sub&&sub(a);if(s)l.appendChild(el('small',s));d.appendChild(l);
     const b=el('button','삭제','x');b.onclick=()=>{del(i)};d.appendChild(b);box.appendChild(d)});
 }
+
+const zdesc=n=>((D.zones.find(x=>x.n===n)||{}).d||'').trim();
 
 /* 구역별 그룹: 구역 순서는 최초 배정 순, 구역 내에서는 시간순 */
 function byZone(){
@@ -294,10 +330,13 @@ function render(){
   const box=$('tbl');box.textContent='';
   if(!L.rows.length){box.appendChild(el('div','추가된 배정이 없습니다','empty'))}
   else byZone().forEach(z=>{
-    const t=el('table'),h=el('tr');['구역','시간','인원'].forEach(x=>h.appendChild(el('th',x)));t.appendChild(h);
-    z.slots.forEach((s,i)=>{
+    const t=el('table'),d=zdesc(z.zone);t.style.tableLayout='fixed';
+    const kv=(k,v,first)=>{const tr=el('tr'),th=el('th',k);if(first)th.style.width='36%';tr.appendChild(th);
+      const td=el('td',v);td.colSpan=2;if(k==='구역')td.style.fontWeight='700';tr.appendChild(td);t.appendChild(tr)};
+    kv('구역',z.zone,true);if(d)kv('구역설명',d);
+    const h=el('tr');['시간','인원'].forEach(x=>h.appendChild(el('th',x)));t.appendChild(h);
+    z.slots.forEach(s=>{
       const tr=el('tr');
-      if(i===0){const c=el('td',z.zone);c.rowSpan=z.slots.length;c.style.fontWeight='700';tr.appendChild(c)}
       tr.appendChild(el('td',s.st+'~'+s.en));
       const td=el('td');
       s.rs.forEach(r=>{const w=el('div',r.p);const b=el('button','✕','x');b.onclick=()=>{L.rows=L.rows.filter(y=>y!==r);save();render()};w.appendChild(b);td.appendChild(w)});
@@ -349,7 +388,7 @@ $('add').onclick=()=>{
 $('clr').onclick=()=>{if(L.rows.length&&confirm('표를 모두 비울까요?')){L.rows=[];save();render()}};
 
 function title(){return '가두증거 구역배정'+(L.date?' ('+L.date+')':'')}
-function toText(){return title()+'\n\n'+byZone().map(z=>'['+z.zone+']\n'+z.slots.map(s=>s.st+'~'+s.en+' | '+s.ps.join(', ')).join('\n')).join('\n\n')}
+function toText(){return title()+'\n\n'+byZone().map(z=>{const d=zdesc(z.zone);return '['+z.zone+']'+(d?'\n'+d:'')+'\n'+z.slots.map(s=>s.st+'~'+s.en+' | '+s.ps.join(', ')).join('\n')}).join('\n\n')}
 $('shT').onclick=async()=>{
   if(!L.rows.length){alert('공유할 내용이 없습니다');return}
   const t=toText();
@@ -360,25 +399,34 @@ $('shT').onclick=async()=>{
 function wrap(g,txt,w){const out=[];let line='';for(const ch of txt){if(g.measureText(line+ch).width>w&&line){out.push(line);line=ch}else line+=ch}if(line)out.push(line);return out}
 $('shI').onclick=()=>{
   if(!L.rows.length){alert('공유할 내용이 없습니다');return}
-  const Z=byZone(),W=720,RH=56,PX=420,PW=276,c=document.createElement('canvas'),g=c.getContext('2d'),F='"Noto Sans KR","Malgun Gothic",sans-serif';
+  const Z=byZone(),W=720,RH=56,X1=24,X2=230,VW=W-X2-24,c=document.createElement('canvas'),g=c.getContext('2d'),F='"Noto Sans KR","Malgun Gothic",sans-serif';
   g.font='24px '+F;
-  Z.forEach(z=>z.slots.forEach(s=>{s.ln=wrap(g,s.ps.join(', '),PW);s.h=Math.max(RH,32*s.ln.length+20)}));
-  let H=96;Z.forEach(z=>{H+=RH+z.slots.reduce((a,s)=>a+s.h,0)+24});
+  Z.forEach(z=>{
+    z.dl=zdesc(z.zone)?wrap(g,zdesc(z.zone),VW):[];z.dh=z.dl.length?Math.max(RH,32*z.dl.length+20):0;
+    z.slots.forEach(s=>{s.ln=wrap(g,s.ps.join(', '),VW);s.h=Math.max(RH,32*s.ln.length+20)});
+  });
+  let H=96;Z.forEach(z=>{H+=RH+z.dh+RH+z.slots.reduce((a,s)=>a+s.h,0)+24});
   c.width=W;c.height=H;
   g.fillStyle='#fff';g.fillRect(0,0,W,H);g.textBaseline='middle';
   g.fillStyle='#1d2330';g.font='bold 30px '+F;g.fillText(title(),24,48,W-48);
+  const line=(y,x)=>{g.fillStyle='#e1e4ea';g.fillRect(x||0,y,W-(x||0),1)};
+  const lab=(t,y,h)=>{g.fillStyle='#6b7385';g.font='bold 22px '+F;g.fillText(t,X1,y+h/2)};
   let y=96;
   Z.forEach(z=>{
-    g.fillStyle='#eef1f6';g.fillRect(0,y,W,RH);g.fillStyle='#6b7385';g.font='bold 22px '+F;
-    g.fillText('구역',24,y+RH/2);g.fillText('시간',210,y+RH/2);g.fillText('인원',PX,y+RH/2);y+=RH;
-    const top=y,tot=z.slots.reduce((a,s)=>a+s.h,0);
-    g.fillStyle='#1d2330';g.font='bold 24px '+F;g.fillText(z.zone,24,top+tot/2,170);
+    g.fillStyle='#eef1f6';g.fillRect(0,y,W,RH+z.dh);
+    lab('구역',y,RH);g.fillStyle='#1d2330';g.font='bold 24px '+F;g.fillText(z.zone,X2,y+RH/2,VW);y+=RH;
+    if(z.dh){
+      lab('구역설명',y,z.dh);g.fillStyle='#1d2330';g.font='24px '+F;
+      const off=(z.dh-32*z.dl.length)/2+16;z.dl.forEach((l,k)=>g.fillText(l,X2,y+off+32*k));y+=z.dh;
+    }
+    line(y-1);
+    lab('시간',y,RH);g.fillText('인원',X2,y+RH/2);
+    y+=RH;line(y-1);
     g.font='24px '+F;
     z.slots.forEach((s,i)=>{
-      g.fillStyle='#e1e4ea';const last=i===z.slots.length-1;g.fillRect(last?0:200,y+s.h-1,last?W:W-200,1);
-      g.fillStyle='#1d2330';g.fillText(s.st+'~'+s.en,210,y+s.h/2);
-      const off=(s.h-32*s.ln.length)/2+16;s.ln.forEach((l,k)=>g.fillText(l,PX,y+off+32*k));
-      y+=s.h;
+      g.fillStyle='#1d2330';g.fillText(s.st+'~'+s.en,X1,y+s.h/2,X2-X1-12);
+      const off=(s.h-32*s.ln.length)/2+16;s.ln.forEach((l,k)=>g.fillText(l,X2,y+off+32*k));
+      y+=s.h;line(y-1,i===z.slots.length-1?0:X1);
     });
     y+=24;
   });
@@ -393,38 +441,42 @@ $('oc').onclick=()=>{$('ov').style.display='none'};
 /* ---------- 로그인 / 설정 ---------- */
 function gate(){
   const forced=authed&&cur&&cur.mustChange,ad=authed&&cur&&cur.role==='admin',sh=v=>v?'':'none';
+  const inGate=!authed||forced||showPw;
+  $('gw').style.display=sh(inGate);$('app').style.display=sh(!inGate);
   $('login').style.display=sh(!authed);
-  $('adm').style.display=sh(authed&&!forced&&!showPw);
   $('pwc').style.display=sh(authed&&(forced||showPw));
   $('pwcan').style.display=sh(!forced);
   $('pwm').textContent=forced?'최초 로그인입니다. 초기 비밀번호를 반드시 변경해야 합니다.':'';
   $('ac').style.display=sh(ad);$('lc').style.display=sh(ad);$('vc').style.display=sh(ad);$('dc').style.display=sh(ad);
   $('ic').style.display=sh(ad&&$('ic').dataset.has==='1');
-  $('whoT').textContent=(authed&&cur)?'로그인: '+cur.name+' ('+cur.id+')':'로그인 안 됨 · 설정 탭에서 로그인하세요';
+  $('whoT').textContent=(authed&&cur)?'로그인: '+cur.name+' ('+cur.id+')':'';
   renderNet();
 }
 function applyDef(){$('st').value=D.defSt;$('en').value=D.defEn;$('ds').value=D.defSt;$('de').value=D.defEn}
-function logout(){authed=false;cur=null;cred=null;AD={accts:[],logs:[]};showPw=false;render();gate()}
+function logout(){
+  if(tk)call('logout');                       // 서버의 로그인 토큰도 폐기
+  setTk(null);authed=false;cur=null;D=emptyD();AD={accts:[],logs:[]};showPw=false;defApplied=false;
+  $('lid').value=$('lpw').value='';$('lerr').textContent='';render();gate();
+}
 
 $('lgo').onclick=async()=>{
   const id=$('lid').value.trim(),pw=$('lpw').value;
   if(!id||!pw){$('lerr').textContent='ID와 비밀번호를 입력하세요';return}
-  $('lgo').disabled=true;cred={id,pw};
-  const r=await call('login');
+  $('lgo').disabled=true;$('lerr').textContent='';
+  const r=await call('login',{id,pw});
   $('lgo').disabled=false;
-  if(r.ok){authed=true;cur=r.user;showPw=false;$('lerr').textContent='';$('lpw').value='';apply(r);render();gate()}
-  else{cred=null;$('lerr').textContent=r.error==='net'?'서버에 연결할 수 없습니다':'ID 또는 비밀번호가 올바르지 않습니다'}
+  if(r.ok){setTk(r.token);authed=true;cur=r.user;showPw=false;$('lpw').value='';apply(r);applyDef();defApplied=true;tab(1);render();gate()}
+  else $('lerr').textContent=r.error==='net'?'서버에 연결할 수 없습니다':'ID 또는 비밀번호가 올바르지 않습니다';
 };
-$('lout').onclick=logout;
+$('lout').onclick=logout;$('lout2').onclick=logout;
 $('pwopen').onclick=()=>{showPw=true;$('pwe').textContent='';gate()};
 $('pwcan').onclick=()=>{showPw=false;$('np').value=$('np2').value='';gate()};
 $('pwgo').onclick=async()=>{
   const a=$('np').value,b=$('np2').value,e=m=>{$('pwe').textContent=m};
   if(a.length<4){e('4자 이상 입력하세요');return}
   if(a!==b){e('확인 값이 일치하지 않습니다');return}
-  if(a===cred.pw){e('기존 비밀번호와 다르게 입력하세요');return}
   const r=await call('changePw',{newPw:a});
-  if(r.ok){cred.pw=a;showPw=false;$('np').value=$('np2').value='';e('');apply(r);cur=r.user;render();gate()}
+  if(r.ok){showPw=false;$('np').value=$('np2').value='';e('');apply(r);cur=r.user;render();gate()}
   else e(r.error==='net'?'서버에 연결할 수 없습니다':r.error==='same'?'기존 비밀번호와 다르게 입력하세요':'변경하지 못했습니다');
 };
 $('lclr').onclick=()=>{if(confirm('접속 로그를 모두 지울까요?'))act('logsClear')};
@@ -453,8 +505,18 @@ $('imp').onclick=async()=>{
   alert(fail?'서버 연결이 끊겨 일부만 가져왔습니다. 다시 시도하세요.':'가져오기 완료 (새로 추가된 항목 '+n+'개)');
 };
 
-applyDef();render();gate();
-refresh().then(()=>{gate()});
+render();gate();
+(async()=>{
+  if(tk){
+    $('lerr').textContent='로그인 상태 확인 중…';
+    const r=await call('resume');
+    $('lerr').textContent='';
+    if(r.ok){authed=true;cur=r.user;apply(r);applyDef();defApplied=true}
+    else if(r.error==='auth')setTk(null);
+    else $('lerr').textContent='서버에 연결할 수 없습니다. 새로고침해 주세요';
+    render();gate();
+  }
+})();
 setInterval(refresh,30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 </script>
