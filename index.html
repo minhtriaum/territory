@@ -60,6 +60,27 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 .bar .btn{margin:0;padding:8px 2px;font-size:12px;flex:1;white-space:nowrap}
 .stp{display:flex;gap:6px;align-items:center}
 .stp input{text-align:center;flex:1}
+.ch{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.ch button{min-height:48px;padding:8px 16px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:10px;font-size:15px}
+.ch button.on{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
+textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;font-size:15px;resize:vertical}
+.memo{border-left:3px solid var(--ac);background:var(--bg);border-radius:6px;padding:6px 10px;margin:6px 0;font-size:13px;white-space:pre-wrap}
+.memo b{display:block;margin-bottom:2px}
+.li small.mm{white-space:pre-wrap;color:var(--tx);opacity:.85}
+.dg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.dg button{padding:10px 0;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:14px}
+.dg button.on{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:700}
+.fl{display:flex;gap:6px;margin:8px 0 4px}
+.fl button{flex:1;padding:7px 2px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:13px}
+.fl button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}
+.pr{display:flex;align-items:center;gap:6px;border:1px solid var(--bd);border-radius:10px;padding:3px 6px 3px 10px;background:var(--bg)}
+.pr .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.sg{display:inline-flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden;flex:0 0 auto}
+.sg button{border:0;background:var(--card);color:var(--sub);font-size:14px;padding:6px 11px;width:auto;margin:0}
+.sg button.m.on{background:#2f6fed;color:#fff;font-weight:700}
+.sg button.f.on{background:#e0457b;color:#fff;font-weight:700}
+.pr .x{padding:2px 4px}
 .stp button{flex:0 0 48px;width:48px;padding:10px 0;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;font-size:15px}
 .endT{font-size:14px;color:var(--ac);font-weight:600;padding:6px 0 0}
 .mx{overflow-x:auto;border:1px solid var(--bd);border-radius:8px}
@@ -125,20 +146,22 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 <section id="p1">
   <div class="card">
     <label>날짜</label><input type="date" id="date">
-    <label>지역</label><select id="reg"></select>
+    <label>지역 (눌러서 선택)</label><div id="regb" class="ch"></div>
   </div>
   <div class="card">
     <h2>1) 시간 설정</h2>
     <label>시작 시간</label><input type="time" id="st" value="15:00">
-    <label>진행 시간 (5분 단위)</label>
-    <div class="stp"><button id="dm">−5</button><input type="number" id="dur" min="5" max="600" step="5" value="60" inputmode="numeric"><button id="dp">+5</button></div>
+    <label id="durL">진행 시간</label>
+    <div id="durb" class="dg"></div>
+    <div id="durs" class="stp" style="display:none"><button id="dm5">−5</button><button id="dm1">−1</button><input type="number" id="dur" min="1" max="600" step="1" value="60" inputmode="numeric"><button id="dp1">+1</button><button id="dp5">+5</button></div>
     <div class="endT" id="endT"></div>
     <button class="btn" id="tadd">시간 추가</button>
   </div>
   <div class="card">
     <h2>2) 구역 설정</h2>
-    <select id="zone"></select>
-    <div class="r"><button class="btn" id="zaddc">구역 추가</button><button class="btn s" id="zalls">지역 전체 구역 추가</button></div>
+    <div class="hint">눌러서 표에 추가/제외합니다. ✓ 표시가 표에 들어간 구역이고, 📝는 메모가 있는 구역입니다.</div>
+    <div id="zonb" class="ch"></div>
+    <div class="r"><button class="btn s" id="zalls">지역 전체 구역 추가</button><button class="btn s" id="znone">구역 모두 제외</button></div>
   </div>
   <div class="card">
     <h2>봉사참여자 선택<span id="pcnt" class="cnt"></span></h2>
@@ -150,7 +173,7 @@ th{color:var(--sub);font-weight:600;font-size:13px}
   </div>
   <div class="card">
     <h2>배정<span id="wcnt" class="cnt"></span></h2>
-    <div class="hint">수동: 미배정 인원을 눌러 선택한 뒤, 배정표 칸의 [＋]를 누릅니다. 자동: 형제 먼저 → 자매 순으로 칸마다 고르게 배정됩니다. 반자동: 먼저 수동으로 배정하고 [남은 인원 자동]을 누릅니다.</div>
+    <div class="hint">수동: 인원을 눌러 선택한 뒤 배정표 칸의 [＋]를 누릅니다. 이미 배정된 인원도 다른 시간대의 칸에 배정할 수 있습니다 (같은 시간대에는 한 구역만, 이름 옆 숫자는 배정 횟수). 자동: 형제 먼저 → 자매 순으로 칸마다 고르게 배정됩니다. 반자동: 먼저 수동으로 배정하고 [남은 인원 자동]을 누르면 아직 배정되지 않은 인원만 채웁니다.</div>
     <div id="wait"></div>
     <div class="r"><button class="btn" id="aauto">전체 자동 배정</button><button class="btn" id="asemi">남은 인원 자동</button></div>
     <button class="btn s" id="areset">배정 초기화</button>
@@ -160,6 +183,7 @@ th{color:var(--sub);font-weight:600;font-size:13px}
     <h2>배정표</h2>
     <div id="tbl"></div>
     <div id="zds" class="hint"></div>
+    <div id="zms"></div>
     <div class="r" style="margin-top:10px"><button class="btn s" id="shT">텍스트 공유</button><button class="btn" id="shI">이미지 공유</button></div>
     <button class="btn s" id="clr">표 비우기</button>
   </div>
@@ -177,30 +201,34 @@ th{color:var(--sub);font-weight:600;font-size:13px}
       <label>지역 선택</label><select id="zr"></select>
       <div class="hint">선택한 지역 아래에 구역이 등록됩니다.</div>
       <input id="zn" placeholder="구역명"><label>구역 설명</label><input id="zd" placeholder="예) 역 2번 출구 앞">
+      <label>구역 메모 (특이사항 · 인도자 참고용)</label><textarea id="zm" rows="3" placeholder="예) 오후 4시 이후 통행 많음 / 건물 관리인 협조 필요"></textarea>
       <button class="btn" id="zadd">구역 추가</button><div id="zl"></div>
     </div>
     <div class="card">
       <h2>3) 전도인 등록</h2>
       <div class="r"><input id="pn" placeholder="이름"><select id="pg" style="flex:0 0 96px"><option value="M">형제</option><option value="F">자매</option></select><button class="btn" id="padd" style="flex:0 0 72px;width:72px;margin:0;padding:10px 0">등록</button></div>
-      <div class="hint">이름 칸을 누르면 형제 ↔ 자매가 바뀝니다. ✕는 삭제입니다.</div>
+      <div class="fl" id="pf"></div>
+      <div class="hint">이름 옆 [형][자] 버튼을 눌러 형제/자매를 지정합니다 (파랑=형제, 분홍=자매). ✕는 삭제.</div>
       <div id="pl"></div>
     </div>
+    <div class="card" id="dc">
+      <h2>4) 배정 시간 설정</h2>
+      <div class="empty" style="padding:0 0 6px;text-align:left">[배정] 화면을 열 때 미리 채워지는 시작·종료 시간과 진행 시간 입력 방식입니다. 이 기기에 저장되며, 관리자 계정은 서버 기본값으로도 저장됩니다.</div>
+      <div class="r"><div><label>기본 시작</label><input type="time" id="ds"></div><div><label>기본 종료</label><input type="time" id="de"></div></div>
+      <label>진행 시간 입력 방식</label>
+      <select id="dmode"><option value="btn">5분 단위 선택 (5·10·15…60분 버튼)</option><option value="direct">직접 입력 (1분 단위 조정)</option></select>
+      <button class="btn" id="dsave">배정 시간 저장</button>
+    </div>
     <div class="card" id="ac">
-      <h2>4) 계정 등록 (인도자 계정)</h2>
+      <h2>5) 계정 등록 (인도자 계정)</h2>
       <input id="aid" placeholder="ID" autocapitalize="off"><label>초기 비밀번호</label><input id="apw" placeholder="초기 비밀번호"><label>이름</label><input id="anm" placeholder="이름">
       <button class="btn" id="aadd">계정 추가</button>
       <div class="empty" style="padding:6px 0 0;text-align:left">신규 계정은 최초 로그인 시 비밀번호를 반드시 변경합니다.</div>
       <div id="al"></div>
     </div>
     <div class="card" id="lc">
-      <h2>5) 인도자 접속 로그</h2><div id="ll"></div>
+      <h2>6) 인도자 접속 로그</h2><div id="ll"></div>
       <button class="btn s" id="lclr">로그 지우기</button>
-    </div>
-    <div class="card" id="dc">
-      <h2>6) 배정 기본 시간 설정</h2>
-      <div class="empty" style="padding:0 0 6px;text-align:left">[배정] 화면을 열 때 시작 시간·진행 시간에 미리 채워지는 값입니다.</div>
-      <div class="r"><div><label>기본 시작</label><input type="time" id="ds"></div><div><label>기본 종료</label><input type="time" id="de"></div></div>
-      <button class="btn" id="dsave">기본 시간 저장</button>
     </div>
     <div class="card" id="ic" style="display:none">
       <h2>7) 이 기기의 기존 데이터 가져오기</h2>
@@ -218,12 +246,45 @@ th{color:var(--sub);font-weight:600;font-size:13px}
 <script>
 /* ★ 설정: Google Apps Script 웹앱 주소(…/exec)를 따옴표 안에 붙여넣으세요.
    비워 두면 "서버 미설정" 상태로, 예전처럼 이 기기에만 저장됩니다. */
-const API_URL='https://script.google.com/macros/s/AKfycbyDyuJTobZJ3Non2F1y98SfOw1P-T2Fdqk5Qq5lFyJ3VI0BVmebYnj7QX7bQS-B-_ca/exec';
+const API_URL='';
 
 const $=id=>document.getElementById(id);
-const VERSION='2.0';
+const VERSION='2.6';
 /* 버전 규칙: [업데이트]=0.1 단위, [수정]=0.01 단위. 최초 생성 파일이 v1.0 */
 const RELEASES=[
+ {v:'2.6',d:'261029',items:[
+  '[설정] 배정 시간 설정을 6)에서 4)번 항목으로 이동 (계정 등록 5), 접속 로그 6), 기존 데이터 가져오기 7))'
+ ]},
+ {v:'2.5',d:'261029',items:[
+  '[설정] 6) 배정 시간 설정 재구성: 진행 시간은 5분 단위로 5~60분 버튼 선택, "직접 입력(1분 단위 조정)" 옵션은 그대로 유지',
+  '배정 시간 설정을 사용자(인도자) 계정에서도 사용 가능 — 이 기기에 저장, 관리자 계정은 서버 기본값으로도 저장',
+  '이전 버전의 10/15/20/30/40분 단위·최대 시간 선택은 정리됨 (서버 재배포 없이 사용 가능)'
+ ]},
+ {v:'2.4',d:'261029',items:[
+  '[설정] 배정 기본 설정의 진행 시간 선택 단위에 20분(20·40·60…)과 40분(40·80·120…) 추가',
+  '서버(Code.gs) 재배포 필요: 20분/40분 단위를 서버에 저장 (재배포 전에는 이 두 값이 저장되지 않음)'
+ ]},
+ {v:'2.3',d:'261029',items:[
+  '[설정] 구역 메모 추가: 구역별 특이사항·인도자 참고용 메모를 등록/수정 (구역 등록·수정 화면, 목록에 표시)',
+  '[배정] 선택한 구역의 메모를 배정표 아래에 표시 (공유 이미지·텍스트에는 포함되지 않음), 구역 선택창에 📝 표시',
+  '[배정] 지역/구역 선택 개선: 작은 드롭다운 대신 큰 버튼(높이 48px)을 눌러 지역 선택, 구역은 눌러서 표에 추가/제외',
+  '서버(Code.gs) 재배포 필요: 구역 시트에 메모 열 추가 (재배포 전에는 메모가 저장되지 않음)'
+ ]},
+ {v:'2.2',d:'261029',items:[
+  '[배정] 시간 설정 UI 개선: 진행 시간을 5·10·15…60 선택 버튼으로 고름 (선택한 값 강조, 종료 시간 자동 표시)',
+  '[설정] 기본 시간에 "진행 시간 선택 단위(1·5·10·15·30분)"와 "최대 진행 시간" 설정 추가 — 1분 단위는 −5/−1/+1/+5 버튼으로 분 단위 조정',
+  '[설정] 전도인 형제/자매 전환 UI 개선: 이름마다 [형|자] 버튼으로 현재 성별이 색(파랑/분홍)으로 표시되고 바로 선택, 전체/형제/자매/미지정 필터 추가',
+  '서버(Code.gs) 재배포 시 시간 단위·최대값이 모든 기기에 공유됨 (재배포 전에는 기본값 5분 단위·60분)'
+ ]},
+ {v:'2.1',d:'261029',items:[
+  '배정 규칙 조정: 같은 시간대에는 한 사람을 두 구역 이상에 중복 배정할 수 없음 (다른 시간대에는 배정 가능)',
+  '이미지 공유 디자인 개선: 상단 제목 영역, 구역명 머리글 색상, 시간 열 강조, 큰 글꼴과 이름 줄바꿈 정리, 선명한 2배 해상도',
+  '구역(열)이 많아 칸 너비가 좁아지면 한 표에 최대 4개 구역만 두고 나머지는 하단에 새 표로 이어서 생성'
+ ]},
+ {v:'2.01',d:'261029',items:[
+  '[수정] 중복 배정 허용: 한 전도인을 여러 시간·구역 칸에 배정할 수 있음 (같은 칸에는 한 번만). 배정된 인원도 계속 선택 가능하며 이름 옆에 배정 횟수 표시',
+  '자동 배정은 아직 한 번도 배정되지 않은 인원만 대상으로 하며, 수동 중복 배정은 그대로 유지'
+ ]},
  {v:'2.0',d:'261028',items:[
   '지역 추가: [설정]에서 지역을 등록하고, 등록된 지역 아래에 구역이 속하도록 변경. [배정]에서는 지역을 선택하면 해당 지역의 구역만 표시',
   '구역: 지역을 선택해 추가하고, 구역명·구역 설명을 수정할 수 있음',
@@ -288,7 +349,7 @@ function core(q,db,H,now,ms,rnd){
   }
   if(!u)return err('auth');
   const adm=u.role==='admin';
-  const pub=()=>({regions:db.regions,zones:db.zones,people:db.people,defSt:db.defSt,defEn:db.defEn});
+  const pub=()=>({regions:db.regions,zones:db.zones,people:db.people,defSt:db.defSt,defEn:db.defEn,durStep:db.durStep||5,durMax:db.durMax||60});
   const me=()=>({id:u.id,name:u.name,role:u.role,mustChange:!!u.mustChange});
   const adminData=()=>({accts:db.accts.map(x=>({id:x.id,name:x.name,role:x.role,mustChange:!!x.mustChange})),logs:db.logs.slice(-100).reverse()});
   const ok=(d,extra)=>({res:Object.assign({ok:true,user:me(),state:pub()},adm?{admin:adminData()}:{},extra||{}),dirty:!!d});
@@ -320,15 +381,16 @@ function core(q,db,H,now,ms,rnd){
   if(a==='regionSet'){const n=s(q.n),nn=s(q.nn),r=db.regions.find(x=>x.n===n);if(!r||!nn)return err('empty');
     if(nn!==n&&hasR(nn))return err('dup');r.n=nn;db.zones.forEach(z=>{if(z.r===n)z.r=nn});return ok(true)}
   if(a==='zoneAdd'){const n=s(q.n),r=s(q.r);if(!n)return err('empty');if(!hasR(r))return err('norg');
-    if(db.zones.some(z=>z.r===r&&z.n===n))return err('dup');db.zones.push({n,d:s(q.d),a:s(q.a),r});return ok(true)}
+    if(db.zones.some(z=>z.r===r&&z.n===n))return err('dup');db.zones.push({n,d:s(q.d),a:s(q.a),r,m:s(q.m)});return ok(true)}
   if(a==='zoneDel'){const n=s(q.n),r=s(q.r);db.zones=db.zones.filter(z=>!(z.n===n&&z.r===r));return ok(true)}
   if(a==='zoneSet'){const n=s(q.n),r=s(q.r),nn=s(q.nn),z=db.zones.find(x=>x.n===n&&x.r===r);if(!z||!nn)return err('empty');
-    if(nn!==n&&db.zones.some(x=>x.r===r&&x.n===nn))return err('dup');z.n=nn;z.d=s(q.d);return ok(true)}
+    if(nn!==n&&db.zones.some(x=>x.r===r&&x.n===nn))return err('dup');z.n=nn;z.d=s(q.d);if(q.m!=null)z.m=s(q.m);return ok(true)}
   if(a==='peopleAdd'){const n=s(q.n);if(!n)return err('empty');if(db.people.some(p=>p.n===n))return err('dup');db.people.push({n,g:gOf(q.g)});return ok(true)}
   if(a==='peopleDel'){const n=s(q.n);db.people=db.people.filter(p=>p.n!==n);return ok(true)}
   if(a==='peopleSet'){const p=db.people.find(x=>x.n===s(q.n));if(!p)return err('empty');p.g=gOf(q.g);return ok(true)}
   if(!adm)return err('forbidden');
-  if(a==='setDefaults'){const x=s(q.defSt),y=s(q.defEn);if(!x||!y||y<=x)return err('time');db.defSt=x;db.defEn=y;return ok(true)}
+  if(a==='setDefaults'){const x=s(q.defSt),y=s(q.defEn);if(!x||!y||y<=x)return err('time');db.defSt=x;db.defEn=y;
+    const st=+q.durStep,mx=+q.durMax;if([1,5,10,15,20,30,40].includes(st))db.durStep=st;if([30,60,90,120].includes(mx))db.durMax=mx;return ok(true)}
   if(a==='acctAdd'){
     const id=s(q.aid),pw=String(q.apw||''),nm=s(q.anm);
     if(!id||!pw||!nm)return err('empty');
@@ -371,19 +433,19 @@ if(!L){const o=jget(OLD,{});L={rows:o.rows||[],date:o.date||''}}
   }
   L.zs=L.zs||[];
 })();
-const emptyD=()=>({regions:[],zones:[],people:[],defSt:'15:00',defEn:'16:00'});
+const emptyD=()=>({regions:[],zones:[],people:[],defSt:'15:00',defEn:'16:00',durStep:5,durMax:60});
 let D=emptyD();                            // 공용(서버) 사본 — 로그인 후에만 채워짐
 let AD={accts:[],logs:[]};                  // 관리자용(서버)
 const save=()=>jset(LK,L);
 let authed=false,cur=null,tk=null,showPw=false,showRel=false,netOk=null,defApplied=false;
-let SR='',ZE=null,REN=null;                  // 설정에서 선택한 지역 / 수정 중인 구역 / 구역 이름 변경 중 로컬 반영용
+let SR='',ZE=null,REN=null,PF='all';                  // 설정에서 선택한 지역 / 수정 중인 구역 / 구역 이름 변경 중 로컬 반영용
 try{tk=localStorage.getItem(TK)}catch(e){}
 const setTk=v=>{tk=v;try{v?localStorage.setItem(TK,v):localStorage.removeItem(TK)}catch(e){}};
 
 /* 서버 미설정 시: 같은 core 로직을 이 기기 저장소에서 실행 */
 function localRun(q){
   const o=jget(OLD,{});
-  const db={regions:o.regions||[],zones:o.zones||[],people:o.people||[],logs:o.logs||[],sessions:o.sessions||[],defSt:o.defSt||'15:00',defEn:o.defEn||'16:00',
+  const db={regions:o.regions||[],zones:o.zones||[],people:o.people||[],logs:o.logs||[],sessions:o.sessions||[],defSt:o.defSt||'15:00',defEn:o.defEn||'16:00',durStep:o.durStep||5,durMax:o.durMax||60,
     accts:(o.accts&&o.accts.length)?o.accts:[{id:'admin',name:'관리자',role:'admin',pw:'1234',mustChange:true}]};
   db.accts.forEach(a=>{a.role=a.role||(a.id==='admin'?'admin':'guide')});
   const r=core(q,db,x=>x,new Date().toLocaleString('ko-KR'),Date.now(),()=>Math.random().toString(36).slice(2)+Date.now().toString(36));
@@ -438,6 +500,7 @@ const fromMin=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padSt
 const endOf=(st,dur)=>{const m=toMin(st)+dur;return(isNaN(m)||m>=1440)?'':fromMin(m)};   // 자정을 넘기면 ''
 
 const zonesOf=r=>D.zones.filter(z=>z.r===r);
+const zmemo=n=>((D.zones.find(x=>x.r===L.region&&x.n===n)||{}).m||'').trim();
 const zdesc=n=>((D.zones.find(x=>x.r===L.region&&x.n===n)||{}).d||'').trim();
 const gc=g=>g==='M'?'m':g==='F'?'f':'u';
 const gName=g=>g==='M'?'형제':g==='F'?'자매':'미지정';
@@ -454,6 +517,7 @@ function sortedPeople(list){
   return a.sort((x,y)=>x.n.localeCompare(y.n,'ko'));
 }
 const assignedSet=()=>new Set(L.slots.flatMap(s=>s.ps));
+const cntOf=n=>L.slots.filter(s=>s.ps.includes(n)).length;      // 중복 배정 횟수
 
 /* 시간 × 구역으로 칸(slots)을 맞춤. 시간·구역을 추가/삭제하면 칸이 따라 생기고 사라짐 */
 function sync(){
@@ -502,9 +566,15 @@ function togglePool(n,on){
 function assignTo(id){
   const s=L.slots.find(x=>x.id===id);if(!s)return;
   const names=[...SEL];
-  if(!names.length){alert('미배정 인원에서 배정할 사람을 먼저 눌러 선택하세요');return}
-  names.forEach(n=>{if(!s.ps.includes(n))s.ps.push(n)});
+  if(!names.length){alert('배정할 사람을 먼저 눌러 선택하세요');return}
+  const dup=[];
+  names.forEach(n=>{
+    if(s.ps.includes(n))return;
+    if(L.slots.some(x=>x.tid===s.tid&&x!==s&&x.ps.includes(n))){dup.push(n);return}   // 같은 시간대 중복 불가
+    s.ps.push(n);
+  });
   SEL.clear();save();render();
+  if(dup.length)alert(dup.join(', ')+' 님은 같은 시간대의 다른 구역에 이미 배정되어 있어 배정하지 않았습니다.\n(다른 시간대에는 배정할 수 있습니다)');
 }
 function unassign(s,n){s.ps=s.ps.filter(x=>x!==n);save();render()}
 function delTime(id){L.times=L.times.filter(t=>t.id!==id);sync();save();render()}
@@ -528,17 +598,17 @@ function renderPool(){
   const asg=assignedSet(),pk=$('pick');pk.textContent='';
   if(!D.people.length)pk.appendChild(el('div','등록된 전도인이 없습니다 (아래에서 등록)','empty'));
   sortedPeople(D.people).forEach(p=>{
-    const done=asg.has(p.n),lb=el('label',null,'pk '+gc(p.g)+(done?' done':''));
+    const done=asg.has(p.n),k=cntOf(p.n),lb=el('label',null,'pk '+gc(p.g)+(done?' done':''));
     const cb=el('input');cb.type='checkbox';cb.checked=L.pool.includes(p.n);
     cb.onchange=()=>{togglePool(p.n,cb.checked)};
-    lb.appendChild(cb);lb.appendChild(el('span',p.n+(done?' · 배정됨':'')));pk.appendChild(lb);
+    lb.appendChild(cb);lb.appendChild(el('span',p.n+(k?' · '+k+'회 배정':'')));pk.appendChild(lb);
   });
   $('pcnt').textContent='참여 '+L.pool.length+'명 / 전체 '+D.people.length+'명';
-  SEL.forEach(n=>{if(!L.pool.includes(n)||asg.has(n))SEL.delete(n)});
-  const wait=sortedPeople(D.people.filter(p=>L.pool.includes(p.n)&&!asg.has(p.n))),w=$('wait');w.textContent='';
-  if(!wait.length)w.appendChild(el('div',L.pool.length?'미배정 인원이 없습니다':'위에서 봉사참여자를 먼저 선택하세요','empty'));
-  wait.forEach(p=>w.appendChild(chip(p.n,{sel:SEL.has(p.n),click:()=>{if(SEL.has(p.n))SEL.delete(p.n);else SEL.add(p.n);render()}})));
-  $('wcnt').textContent='미배정 '+wait.length+'명'+(SEL.size?' · 선택 '+SEL.size+'명':'');
+  SEL.forEach(n=>{if(!L.pool.includes(n))SEL.delete(n)});
+  const all=sortedPeople(D.people.filter(p=>L.pool.includes(p.n))),wait=all.filter(p=>!asg.has(p.n)),w=$('wait');w.textContent='';
+  if(!all.length)w.appendChild(el('div','위에서 봉사참여자를 먼저 선택하세요','empty'));
+  all.forEach(p=>{const k=cntOf(p.n),c=chip(p.n,{sel:SEL.has(p.n),click:()=>{if(SEL.has(p.n))SEL.delete(p.n);else SEL.add(p.n);render()}});if(k)c.appendChild(el('small','·'+k,'sm2'));w.appendChild(c)});
+  $('wcnt').textContent='참여 '+all.length+'명 · 미배정 '+wait.length+'명'+(SEL.size?' · 선택 '+SEL.size+'명':'');
   $('amsg').textContent=MSG;MSG='';
 }
 
@@ -546,6 +616,8 @@ function renderPool(){
 function renderTable(){
   const box=$('tbl');box.textContent='';
   const zd=$('zds');zd.textContent='';
+  const zm=$('zms');zm.textContent='';
+  L.zs.forEach(z=>{const m=zmemo(z);if(m){const d=el('div',null,'memo');d.appendChild(el('b','📝 '+z+' 메모'));d.appendChild(el('span',m));zm.appendChild(d)}});
   if(!L.times.length||!L.zs.length){box.appendChild(el('div',!L.times.length?'1) 시간을 추가하세요'+(L.zs.length?'':' → 2) 구역을 추가하세요'):'2) 구역을 추가하세요','empty'));return}
   const wrap=el('div',null,'mx'),t=el('table'),hd=el('thead'),hr=el('tr');
   hr.appendChild(el('th','시간'));
@@ -596,16 +668,17 @@ function renderZoneList(){
     if(ZE&&ZE.r===z.r&&ZE.n===z.n){
       const w=el('div');w.style.flex='1';
       const i1=el('input'),i2=el('input');i1.value=z.n;i2.value=z.d||'';i1.placeholder='구역명';i2.placeholder='구역 설명';i2.style.marginTop='6px';
+      const i3=el('textarea');i3.rows=3;i3.value=z.m||'';i3.placeholder='구역 메모 (특이사항·인도자 참고용)';i3.style.marginTop='6px';
       const bw=el('div',null,'r');bw.style.marginTop='6px';
       const sv=el('button','저장','btn sm'),cn=el('button','취소','btn s sm');sv.style.margin=cn.style.margin='0';
       sv.onclick=async()=>{
         const nn=i1.value.trim();if(!nn){alert('구역명을 입력하세요');return}
-        REN={r:z.r,from:z.n,to:nn};const x=await act('zoneSet',{r:z.r,n:z.n,nn,d:i2.value.trim()});REN=null;if(x.ok){ZE=null;render()}
+        REN={r:z.r,from:z.n,to:nn};const x=await act('zoneSet',{r:z.r,n:z.n,nn,d:i2.value.trim(),m:i3.value.trim()});REN=null;if(x.ok){ZE=null;render()}
       };
       cn.onclick=()=>{ZE=null;render()};
-      bw.appendChild(sv);bw.appendChild(cn);w.appendChild(i1);w.appendChild(i2);w.appendChild(bw);d.appendChild(w);
+      bw.appendChild(sv);bw.appendChild(cn);w.appendChild(i1);w.appendChild(i2);w.appendChild(i3);w.appendChild(bw);d.appendChild(w);
     }else{
-      const l=el('div',z.n);if(z.d)l.appendChild(el('small',z.d));d.appendChild(l);
+      const l=el('div',z.n);if(z.d)l.appendChild(el('small',z.d));if((z.m||'').trim())l.appendChild(el('small','📝 '+z.m.trim(),'mm'));d.appendChild(l);
       const bw=el('div'),eb=el('button','수정','x'),db=el('button','삭제','x');eb.style.color='var(--ac)';
       eb.onclick=()=>{ZE={r:z.r,n:z.n};render()};
       db.onclick=()=>{if(confirm('"'+z.n+'" 구역을 삭제할까요?'))act('zoneDel',{r:z.r,n:z.n})};
@@ -615,22 +688,26 @@ function renderZoneList(){
   });
 }
 function renderPeopleList(){
-  const pl=$('pl');pl.textContent='';
-  if(!D.people.length){pl.appendChild(el('div','등록된 항목 없음','empty'));return}
-  [['M','형제'],['F','자매'],['','미지정']].forEach(([g,nm])=>{
-    const arr=D.people.filter(p=>(p.g||'')===g).sort((x,y)=>x.n.localeCompare(y.n,'ko'));
-    if(!arr.length)return;
-    pl.appendChild(el('div',nm+' '+arr.length+'명','gh'));
-    const row=el('div',null,'pl');
-    arr.forEach(p=>{
-      const c=el('span',null,'chip '+gc(p.g));c.title='누르면 '+(p.g==='M'?'자매':'형제')+'(으)로 변경';
-      c.appendChild(el('b',p.g==='M'?'형':p.g==='F'?'자':'?'));c.appendChild(el('span',p.n));
-      c.onclick=()=>{act('peopleSet',{n:p.n,g:p.g==='M'?'F':'M'})};
-      const x=el('button','✕','x');x.onclick=e=>{e.stopPropagation();if(confirm(p.n+' 님을 삭제할까요?'))act('peopleDel',{n:p.n})};
-      c.appendChild(x);row.appendChild(c);
+  const pl=$('pl'),cnt=g=>D.people.filter(p=>(p.g||'')===g).length;pl.textContent='';
+  const pf=$('pf');pf.textContent='';
+  [['all','전체',D.people.length],['M','형제',cnt('M')],['F','자매',cnt('F')],['','미지정',cnt('')]].forEach(([k,nm,n])=>{
+    const b=el('button',nm+' '+n,PF===k?'on':'');b.onclick=()=>{PF=k;renderPeopleList()};pf.appendChild(b)});
+  const arr=D.people.filter(p=>PF==='all'||(p.g||'')===PF).sort((x,y)=>x.n.localeCompare(y.n,'ko'));
+  if(!arr.length){pl.appendChild(el('div',D.people.length?'해당하는 전도인이 없습니다':'등록된 항목 없음','empty'));return}
+  const grid=el('div',null,'pg');
+  arr.forEach(p=>{
+    const r=el('div',null,'pr'),sg=el('div',null,'sg');
+    r.appendChild(el('span',p.n,'nm'));
+    [['M','형제','m'],['F','자매','f']].forEach(([g,t,c])=>{
+      const b=el('button',t[0],c+(p.g===g?' on':''));b.title=p.n+' → '+t;
+      b.onclick=()=>{if(p.g!==g)act('peopleSet',{n:p.n,g})};sg.appendChild(b);
     });
-    pl.appendChild(row);
+    r.appendChild(sg);
+    const x=el('button','✕','x');x.title='삭제';x.onclick=()=>{if(confirm(p.n+' 님을 삭제할까요?'))act('peopleDel',{n:p.n})};r.appendChild(x);
+    grid.appendChild(r);
   });
+  pl.appendChild(grid);
+  const unk=cnt('');if(unk&&PF!=='')pl.appendChild(el('div','형제/자매가 지정되지 않은 전도인이 '+unk+'명 있습니다. [미지정] 필터에서 지정하세요.','hint'));
 }
 
 function renderNet(){
@@ -647,15 +724,28 @@ function renderRel(){
   RELEASES.forEach(r=>{const h=el('h3','v'+r.v);if(r.d)h.appendChild(el('small',r.d));vv.appendChild(h);r.items.forEach(i=>vv.appendChild(el('div','· '+i)))});
 }
 
+const dStep=()=>(L.tset&&L.tset.mode)?(L.tset.mode==='direct'?1:5):(D.durStep===1?1:5),dMax=()=>60;
+function renderDur(){
+  const step=dStep(),max=dMax(),box=$('durb'),cur=parseInt($('dur').value,10);
+  $('durL').textContent='진행 시간'+(step===1?' (1분 단위 조정)':' ('+step+'분 단위 선택)');
+  $('durs').style.display=step===1?'':'none';box.style.display=step===1?'none':'';
+  box.textContent='';
+  if(step!==1)for(let m=step;m<=max;m+=step){const b=el('button',String(m),m===cur?'on':'');b.onclick=()=>{$('dur').value=m;updDur()};box.appendChild(b)}
+}
 function updDur(){
   const d=parseInt($('dur').value,10),e=(d>0)?endOf($('st').value,d):'';
   $('endT').textContent=!$('st').value||!(d>0)?'':e?'종료 시간 '+e+' ('+d+'분)':'⚠ 자정을 넘길 수 없습니다';
+  [...$('durb').children].forEach(b=>{b.className=(+b.textContent===d)?'on':''});
 }
 function render(){
   $('ttl').textContent=pageTitle();document.title=pageTitle();
-  fillSel($('reg'),D.regions,r=>r.n,'(설정에서 지역 등록)');$('reg').value=L.region;
-  const have=new Set(L.zs);
-  fillSel($('zone'),zonesOf(L.region).filter(z=>!have.has(z.n)),z=>z.n,zonesOf(L.region).length?'(모든 구역이 추가됨)':'(설정에서 구역 등록)');
+  const rb=$('regb');rb.textContent='';
+  if(!D.regions.length)rb.appendChild(el('div','설정에서 지역을 먼저 등록하세요','empty'));
+  D.regions.forEach(r=>{const b=el('button',r.n,r.n===L.region?'on':'');b.onclick=()=>setRegion(r.n);rb.appendChild(b)});
+  const zb=$('zonb');zb.textContent='';
+  const zl=zonesOf(L.region);
+  if(!zl.length)zb.appendChild(el('div',L.region?'이 지역에 등록된 구역이 없습니다 (설정에서 등록)':'먼저 지역을 선택하세요','empty'));
+  zl.forEach(z=>{const on=L.zs.includes(z.n),b=el('button',(on?'✓ ':'')+z.n+((z.m||'').trim()?' 📝':''),on?'on':'');b.onclick=()=>toggleZone(z.n);zb.appendChild(b)});
   $('date').value=L.date||'';
   fillSort($('sort'));
   renderPool();renderTable();renderPeopleList();renderRegions();
@@ -680,7 +770,7 @@ function render(){
   if(!AD.logs.length)ll.appendChild(el('div','접속 기록 없음','empty'));
   AD.logs.forEach(l=>{const d=el('div',null,'li');const x=el('div',l.name+' ('+l.id+')');x.appendChild(el('small',l.t));d.appendChild(x);ll.appendChild(d)});
 
-  renderRel();updDur();
+  renderRel();renderDur();updDur();
   const o=jget(OLD,{}),n=[(o.zones||[]).length,(o.people||[]).length,(o.accts||[]).filter(a=>a.id!=='admin'&&a.role!=='admin').length];
   $('icn').textContent='이 기기에 남아 있는 데이터: 구역 '+n[0]+'개, 전도인 '+n[1]+'명, 계정 '+n[2]+'개';
   $('ic').dataset.has=(API_URL&&(n[0]+n[1]+n[2])>0)?'1':'';
@@ -690,32 +780,37 @@ function tab(n){$('p1').style.display=n==1?'':'none';$('p2').style.display=n==2?
 $('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
 
 $('date').onchange=e=>{L.date=e.target.value;save()};
-$('reg').onchange=e=>{
-  const v=e.target.value;if(v===L.region)return;
-  if(assignedSet().size&&!confirm('지역을 바꾸면 현재 구역 열과 배정이 초기화됩니다 (시간·봉사참여자는 유지). 계속할까요?')){render();return}
+function setRegion(v){
+  if(v===L.region)return;
+  if(assignedSet().size&&!confirm('지역을 바꾸면 현재 구역 열과 배정이 초기화됩니다 (시간·봉사참여자는 유지). 계속할까요?'))return;
   L.region=v;L.zs=[];SR=v;SEL.clear();sync();save();render();
-};
+}
+function toggleZone(n){
+  if(L.zs.includes(n)){
+    if(L.slots.some(s=>s.zone===n&&s.ps.length)&&!confirm('"'+n+'" 구역에 배정된 인원이 있습니다. 표에서 제외하면 이 구역의 배정이 취소됩니다. 계속할까요?'))return;
+    L.zs=L.zs.filter(x=>x!==n);
+  }else L.zs.push(n);
+  sync();save();render();
+}
 $('st').oninput=updDur;$('dur').oninput=updDur;
-const stepDur=k=>{const d=parseInt($('dur').value,10)||0;$('dur').value=Math.max(5,Math.min(600,Math.round(d/5)*5+k));updDur()};
-$('dm').onclick=()=>stepDur(-5);$('dp').onclick=()=>stepDur(5);
+const stepDur=k=>{const d=parseInt($('dur').value,10)||0;$('dur').value=Math.max(1,Math.min(600,d+k));updDur()};
+$('dm5').onclick=()=>stepDur(-5);$('dm1').onclick=()=>stepDur(-1);$('dp1').onclick=()=>stepDur(1);$('dp5').onclick=()=>stepDur(5);
 $('tadd').onclick=()=>{
   const st=$('st').value;let d=parseInt($('dur').value,10);
   if(!st||!(d>0)){alert('시작 시간과 진행 시간을 확인하세요');return}
-  d=Math.max(5,Math.round(d/5)*5);$('dur').value=d;
   const en=endOf(st,d);
   if(!en){alert('종료 시간이 자정을 넘습니다. 진행 시간을 줄여 주세요');return}
   if(L.times.some(t=>t.st===st&&t.en===en)){alert('이미 추가된 시간입니다');return}
   L.times.push({id:uid(),st,en});sync();save();render();
 };
-$('zaddc').onclick=()=>{
-  const z=$('zone').value;
-  if(!L.region){alert('먼저 지역을 선택하세요 (설정에서 지역 등록)');return}
-  if(!z){alert('추가할 구역이 없습니다 (설정에서 구역 등록)');return}
-  L.zs.push(z);sync();save();render();
-};
 $('zalls').onclick=()=>{
   if(!L.region){alert('먼저 지역을 선택하세요 (설정에서 지역 등록)');return}
   zonesOf(L.region).forEach(z=>{if(!L.zs.includes(z.n))L.zs.push(z.n)});sync();save();render();
+};
+$('znone').onclick=()=>{
+  if(!L.zs.length)return;
+  if(assignedSet().size&&!confirm('구역을 모두 제외하면 배정도 함께 취소됩니다. 계속할까요?'))return;
+  L.zs=[];sync();save();render();
 };
 $('sort').onchange=e=>{L.sort=e.target.value;save();render()};
 $('pall').onclick=()=>{L.pool=D.people.map(p=>p.n);save();render()};
@@ -774,31 +869,48 @@ function wrap(g,txt,w){const out=[];let line='';for(const ch of txt){if(g.measur
 $('shI').onclick=()=>{
   const S=shareData();
   if(!S.times.length){alert('공유할 배정이 없습니다');return}
-  const X0=180,CW=150,W=Math.max(480,X0+S.zs.length*CW),c=document.createElement('canvas'),g=c.getContext('2d'),F='"Noto Sans KR","Malgun Gothic",sans-serif',LH=32;
-  g.font='bold 22px '+F;
-  const hl=S.zs.map(z=>wrap(g,z,CW-20)),hh=Math.max(60,LH*Math.max(...hl.map(a=>a.length))+20);
-  g.font='24px '+F;
-  const rows=S.times.map(t=>{const cs=S.zs.map(z=>S.cell(t,z));return{t,cs,h:Math.max(60,LH*Math.max(1,...cs.map(a=>a.length))+20)}});
-  const H=88+hh+rows.reduce((a,r)=>a+r.h,0)+24;
-  c.width=W;c.height=H;
-  g.fillStyle='#fff';g.fillRect(0,0,W,H);g.textBaseline='middle';
-  g.fillStyle='#1d2330';g.font='bold 30px '+F;g.fillText(title(),24,44,W-48);
-  const top=88,bd='#e1e4ea';
-  g.fillStyle='#eef1f6';g.fillRect(0,top,W,hh);
-  g.fillStyle='#6b7385';g.font='bold 22px '+F;g.textAlign='center';g.fillText('시간',X0/2,top+hh/2);
-  g.fillStyle='#1d2330';
-  hl.forEach((ls,i)=>{const off=(hh-LH*ls.length)/2+LH/2;ls.forEach((l,k)=>g.fillText(l,X0+i*CW+CW/2,top+off+LH*k))});
-  let y=top+hh;
-  rows.forEach(r=>{
-    g.fillStyle=bd;g.fillRect(0,y,W,1);
-    g.fillStyle='#1d2330';g.font='bold 22px '+F;g.textAlign='center';g.fillText(r.t.st+'~'+r.t.en,X0/2,y+r.h/2,X0-16);
-    g.font='24px '+F;
-    r.cs.forEach((ps,i)=>{const off=(r.h-LH*ps.length)/2+LH/2;ps.forEach((n,k)=>g.fillText(n,X0+i*CW+CW/2,y+off+LH*k,CW-16))});
-    y+=r.h;
+  const SC=2,W=720,PAD=24,TW=W-PAD*2,X0=140,MAXC=4,LH=38,F='"Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif';
+  const c=document.createElement('canvas'),g=c.getContext('2d');
+  /* 구역이 많아 칸이 좁아지면 4개씩 끊어 아래에 새 표로 이어 붙임 (고르게 나눔) */
+  const nT=Math.ceil(S.zs.length/MAXC),per=Math.ceil(S.zs.length/nT),blocks=[];
+  for(let i=0;i<S.zs.length;i+=per){
+    const zs=S.zs.slice(i,i+per),CW=(TW-X0)/zs.length;
+    g.font='bold 26px '+F;
+    const hl=zs.map(z=>wrap(g,z,CW-20)),hh=Math.max(64,LH*Math.max(...hl.map(a=>a.length))+24);
+    g.font='26px '+F;
+    const rows=S.times.map(t=>{const cs=zs.map(z=>S.cell(t,z).map(n=>wrap(g,n,CW-20)).flat());return{t,cs,h:Math.max(72,LH*Math.max(1,...cs.map(a=>a.length))+28)}});
+    blocks.push({zs,CW,hl,hh,rows});
+  }
+  const HD=title()===pageTitle()?84:104;
+  const H=HD+blocks.reduce((a,b)=>a+b.hh+b.rows.reduce((x,r)=>x+r.h,0)+36,28);
+  c.width=W*SC;c.height=H*SC;g.scale(SC,SC);
+  g.fillStyle='#f4f6fa';g.fillRect(0,0,W,H);g.textBaseline='middle';
+  g.fillStyle='#2f6fed';g.fillRect(0,0,W,HD);
+  g.fillStyle='#fff';g.textAlign='left';g.font='bold 34px '+F;g.fillText(pageTitle(),PAD,L.date?40:HD/2,TW);
+  if(L.date){g.font='24px '+F;g.fillStyle='rgba(255,255,255,.85)';g.fillText(L.date,PAD,78,TW)}
+  let y=HD+28;
+  blocks.forEach(B=>{
+    const bh=B.hh+B.rows.reduce((x,r)=>x+r.h,0);
+    g.fillStyle='#fff';g.fillRect(PAD,y,TW,bh);
+    g.fillStyle='#e6eeff';g.fillRect(PAD,y,TW,B.hh);                       // 구역명 머리글
+    g.fillStyle='#f0f3f9';g.fillRect(PAD,y+B.hh,X0,bh-B.hh);                // 시간 열
+    g.fillStyle='#1a4fb4';g.font='bold 26px '+F;g.textAlign='center';
+    g.fillText('시간',PAD+X0/2,y+B.hh/2);
+    B.hl.forEach((ls,i)=>{const off=(B.hh-LH*ls.length)/2+LH/2;ls.forEach((l,k)=>g.fillText(l,PAD+X0+i*B.CW+B.CW/2,y+off+LH*k))});
+    let yy=y+B.hh;
+    B.rows.forEach(r=>{
+      g.fillStyle='#d9dee8';g.fillRect(PAD,yy,TW,1);
+      g.fillStyle='#1d2330';g.font='bold 24px '+F;g.textAlign='center';
+      g.fillText(r.t.st,PAD+X0/2,yy+r.h/2-15);g.fillStyle='#6b7385';g.font='22px '+F;g.fillText('~ '+r.t.en,PAD+X0/2,yy+r.h/2+15);
+      g.fillStyle='#1d2330';g.font='26px '+F;
+      r.cs.forEach((ls,i)=>{const off=(r.h-LH*ls.length)/2+LH/2;ls.forEach((l,k)=>g.fillText(l,PAD+X0+i*B.CW+B.CW/2,yy+off+LH*k))});
+      yy+=r.h;
+    });
+    g.fillStyle='#d9dee8';
+    for(let i=0;i<B.zs.length;i++)g.fillRect(PAD+X0+i*B.CW-(i?0:1),y,1,bh);   // 세로선
+    g.fillStyle='#b9c2d3';g.fillRect(PAD,y,TW,1);g.fillRect(PAD,y+bh-1,TW,1);g.fillRect(PAD,y,1,bh);g.fillRect(PAD+TW-1,y,1,bh);
+    y+=bh+36;
   });
-  g.fillStyle=bd;g.fillRect(0,y-1,W,1);g.fillRect(0,top,W,1);
-  for(let i=0;i<=S.zs.length;i++)g.fillRect(i?X0+(i-1)*CW:X0-1,top,1,y-top);
-  g.fillRect(0,top,1,y-top);g.fillRect(W-1,top,1,y-top);
   c.toBlob(async b=>{
     const f=new File([b],'zone-assign.png',{type:'image/png'});
     try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name==='AbortError')return}
@@ -816,16 +928,17 @@ function gate(){
   $('pwc').style.display=sh(authed&&(forced||showPw));
   $('pwcan').style.display=sh(!forced);
   $('pwm').textContent=forced?'최초 로그인입니다. 초기 비밀번호를 반드시 변경해야 합니다.':'';
-  $('ac').style.display=sh(ad);$('lc').style.display=sh(ad);$('dc').style.display=sh(ad);$('rvopen').style.display=sh(ad);
+  $('ac').style.display=sh(ad);$('lc').style.display=sh(ad);$('rvopen').style.display=sh(ad);
   $('ver').textContent=ad?'v'+VERSION:'';
   $('ic').style.display=sh(ad&&$('ic').dataset.has==='1');
   $('whoT').textContent=(authed&&cur)?'로그인: '+cur.name+' ('+cur.id+')':'';
   renderNet();
 }
 function applyDef(){
-  $('st').value=D.defSt;
-  const d=toMin(D.defEn)-toMin(D.defSt);$('dur').value=d>0?Math.max(5,Math.round(d/5)*5):60;
-  $('ds').value=D.defSt;$('de').value=D.defEn;updDur();
+  const T=L.tset||{},st=T.st||D.defSt,en=T.en||D.defEn;
+  $('st').value=st;
+  const d=toMin(en)-toMin(st);$('dur').value=d>0?d:60;
+  $('ds').value=st;$('de').value=en;$('dmode').value=dStep()===1?'direct':'btn';renderDur();updDur();
 }
 function logout(){
   if(tk)call('logout');                       // 서버의 로그인 토큰도 폐기
@@ -861,7 +974,7 @@ $('zr').onchange=e=>{SR=e.target.value;ZE=null;render()};
 $('zadd').onclick=async()=>{
   const n=$('zn').value.trim();if(!n)return;
   if(!SR){alert('먼저 지역을 등록·선택하세요');return}
-  const r=await act('zoneAdd',{r:SR,n,d:$('zd').value.trim()});if(r.ok)$('zn').value=$('zd').value=''};
+  const r=await act('zoneAdd',{r:SR,n,d:$('zd').value.trim(),m:$('zm').value.trim()});if(r.ok)$('zn').value=$('zd').value=$('zm').value=''};
 $('padd').onclick=async()=>{const n=$('pn').value.trim();if(!n)return;const r=await act('peopleAdd',{n,g:$('pg').value});if(r.ok)$('pn').value=''};
 $('aadd').onclick=async()=>{
   const aid=$('aid').value.trim(),apw=$('apw').value,anm=$('anm').value.trim();
@@ -870,7 +983,10 @@ $('aadd').onclick=async()=>{
 };
 $('dsave').onclick=async()=>{
   const a=$('ds').value,b=$('de').value;if(!a||!b||b<=a){alert('시작/종료 시간을 확인하세요');return}
-  const r=await act('setDefaults',{defSt:a,defEn:b});if(r.ok){applyDef();alert('기본 시간이 저장되었습니다')}
+  const mode=$('dmode').value;
+  L.tset={st:a,en:b,mode};save();
+  if(cur&&cur.role==='admin'){const r=await act('setDefaults',{defSt:a,defEn:b,durStep:mode==='direct'?1:5,durMax:60});if(!r.ok)return}
+  applyDef();render();alert('배정 시간 설정이 저장되었습니다')
 };
 $('imp').onclick=async()=>{
   const o=jget(OLD,{});
