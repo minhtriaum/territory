@@ -113,6 +113,7 @@ textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;ba
     <label>비밀번호</label><input id="lpw" type="password">
     <button class="btn" id="lgo">로그인</button>
     <div id="lerr" class="empty" style="color:var(--dg);padding:6px 0 0"></div>
+    <button class="btn s" id="apiRst" style="display:none">이 기기의 서버 주소 해제</button>
   </div>
 
   <div id="pwc" class="card" style="display:none">
@@ -230,8 +231,18 @@ textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;ba
       <h2>6) 인도자 접속 로그</h2><div id="ll"></div>
       <button class="btn s" id="lclr">로그 지우기</button>
     </div>
+    <div class="card" id="sc">
+      <h2>7) 서버 연결 (API URL)</h2>
+      <div class="empty" style="padding:0 0 6px;text-align:left">Apps Script 웹앱 주소(…/exec)를 입력합니다. 이 기기에 저장되며, 저장하면 다시 로그인해야 합니다. 비우고 저장하면 서버 연결이 해제되어 이 기기에만 저장됩니다.</div>
+      <div id="apiS" style="font-size:14px;margin-bottom:4px"></div>
+      <input id="apiIn" placeholder="https://script.google.com/macros/s/…/exec" autocapitalize="off" spellcheck="false">
+      <div class="r"><button class="btn s" id="apiTest">연결 테스트</button><button class="btn" id="apiSave">저장</button></div>
+      <button class="btn s" id="apiLink">다른 기기용 연결 링크 복사</button>
+      <div class="hint">연결 링크를 인도자 기기에서 열면 이 주소가 자동으로 저장됩니다.</div>
+      <div id="apiMsg" class="hint"></div>
+    </div>
     <div class="card" id="ic" style="display:none">
-      <h2>7) 이 기기의 기존 데이터 가져오기</h2>
+      <h2>8) 이 기기의 기존 데이터 가져오기</h2>
       <div class="empty" style="padding:0 0 6px;text-align:left">서버 저장 방식으로 바꾸기 전에 이 기기에 저장돼 있던 구역·전도인·계정을 서버로 옮깁니다. 구역은 '기본' 지역으로 들어갑니다. 이미 있는 항목은 건너뛰고, 가져온 계정은 첫 로그인 때 비밀번호를 다시 바꿔야 합니다.</div>
       <div id="icn" style="font-size:14px"></div>
       <button class="btn" id="imp">서버로 가져오기</button>
@@ -244,14 +255,24 @@ textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;ba
 <div id="ov"><img id="oi" alt=""><p>이미지를 길게 눌러 저장하세요</p><button class="btn" id="oc">닫기</button></div>
 
 <script>
-/* ★ 설정: Google Apps Script 웹앱 주소(…/exec)를 따옴표 안에 붙여넣으세요.
-   비워 두면 "서버 미설정" 상태로, 예전처럼 이 기기에만 저장됩니다. */
-const API_URL='';
+/* 서버(Apps Script 웹앱) 주소는 [설정] → 7) 서버 연결에서 입력합니다. 비어 있으면 "서버 미설정" 상태로 이 기기에만 저장됩니다. */
+const API_DEFAULT='';                         // (선택) 여기에 주소를 넣어 두면 기본값으로 사용. 보통은 [설정]에서 입력
+const AK='zoneAssignApi';
+(function(){                                  // 연결 링크(#api=…)로 열면 주소를 이 기기에 저장
+  try{const m=/[#&]api=([^&]+)/.exec(location.hash);if(m){const u=decodeURIComponent(m[1]);if(/^https:\/\//.test(u))localStorage.setItem(AK,u);history.replaceState(null,'',location.pathname+location.search)}}catch(e){}
+})();
+let API_URL=API_DEFAULT;try{API_URL=localStorage.getItem(AK)||API_DEFAULT}catch(e){}
 
 const $=id=>document.getElementById(id);
-const VERSION='2.6';
+const VERSION='2.7';
 /* 버전 규칙: [업데이트]=0.1 단위, [수정]=0.01 단위. 최초 생성 파일이 v1.0 */
 const RELEASES=[
+ {v:'2.7',d:'261103',items:[
+  '[설정] 7) 서버 연결(API URL) 추가 (관리자): 주소 입력·연결 테스트·저장, 코드를 직접 수정하지 않아도 됨. 주소는 이 기기에 저장되고 저장 후 다시 로그인',
+  '다른 기기용 연결 링크 복사: 링크를 열면 주소가 자동 저장 (인도자 기기 설정용)',
+  '서버 미설정 상태에서도 admin 계정으로 로그인해 주소를 입력할 수 있음. 서버 연결 실패 시 로그인 화면에서 이 기기의 주소를 해제 가능',
+  '서버(Code.gs) 변경 없음'
+ ]},
  {v:'2.6',d:'261029',items:[
   '[설정] 배정 시간 설정을 6)에서 4)번 항목으로 이동 (계정 등록 5), 접속 로그 6), 기존 데이터 가져오기 7))'
  ]},
@@ -930,7 +951,8 @@ function gate(){
   $('pwm').textContent=forced?'최초 로그인입니다. 초기 비밀번호를 반드시 변경해야 합니다.':'';
   $('ac').style.display=sh(ad);$('lc').style.display=sh(ad);$('rvopen').style.display=sh(ad);
   $('ver').textContent=ad?'v'+VERSION:'';
-  $('ic').style.display=sh(ad&&$('ic').dataset.has==='1');
+  $('ic').style.display=sh(ad&&$('ic').dataset.has==='1');$('sc').style.display=sh(ad);
+  $('apiS').textContent=API_URL?'현재: 서버 연결 설정됨':'현재: 서버 미설정 (이 기기에만 저장)';if(document.activeElement!==$('apiIn'))$('apiIn').value=API_URL;
   $('whoT').textContent=(authed&&cur)?'로그인: '+cur.name+' ('+cur.id+')':'';
   renderNet();
 }
@@ -953,7 +975,8 @@ $('lgo').onclick=async()=>{
   const r=await call('login',{id,pw});
   $('lgo').disabled=false;
   if(r.ok){setTk(r.token);authed=true;cur=r.user;showPw=false;showRel=false;$('lpw').value='';apply(r);applyDef();defApplied=true;tab(1);render();gate()}
-  else $('lerr').textContent=r.error==='net'?'서버에 연결할 수 없습니다':'ID 또는 비밀번호가 올바르지 않습니다';
+  else $('apiRst').style.display=(r.error==='net'&&API_URL)?'':'none';
+  $('lerr').textContent=r.error==='net'?'서버에 연결할 수 없습니다':'ID 또는 비밀번호가 올바르지 않습니다';
 };
 $('lout').onclick=logout;
 $('pwopen').onclick=()=>{showPw=true;$('pwe').textContent='';gate()};
@@ -1016,6 +1039,31 @@ render();gate();
 })();
 setInterval(refresh,30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+
+/* ---------- 서버 주소(API URL) 설정 ---------- */
+const apiVal=()=>$('apiIn').value.trim();
+const apiOk=u=>/^https:\/\/script\.google\.com\/macros\/s\/[^\/]+\/exec$/.test(u)||/^https:\/\/script\.google\.com\/a\/macros\/[^\/]+\/s\/[^\/]+\/exec$/.test(u);
+$('apiTest').onclick=async()=>{
+  const u=apiVal(),m=$('apiMsg');if(!u){m.textContent='주소를 입력하세요';return}
+  m.textContent='확인 중…';
+  try{const r=await fetch(u),j=await r.json();m.textContent=j&&j.ok?'✓ 연결 성공: '+(j.hint||'서버 응답 정상'):'서버 응답이 올바르지 않습니다'}
+  catch(e){m.textContent='연결하지 못했습니다. 주소와 배포 설정(액세스: 모든 사용자)을 확인하세요'}
+};
+$('apiSave').onclick=()=>{
+  const u=apiVal();
+  if(u&&!apiOk(u)&&!confirm('Apps Script 웹앱 주소(…/exec) 형식이 아닙니다. 그래도 저장할까요?'))return;
+  if(!u&&!confirm('서버 연결을 해제하고 이 기기에만 저장할까요?'))return;
+  try{u?localStorage.setItem(AK,u):localStorage.removeItem(AK)}catch(e){}
+  API_URL=u||API_DEFAULT;
+  alert(u?'저장되었습니다. 다시 로그인해 주세요.':'서버 연결이 해제되었습니다. 다시 로그인해 주세요.');
+  logout();
+};
+$('apiLink').onclick=async()=>{
+  const u=apiVal()||API_URL;if(!u){alert('저장된 주소가 없습니다');return}
+  const link=location.href.split('#')[0]+'#api='+encodeURIComponent(u);
+  try{await navigator.clipboard.writeText(link);$('apiMsg').textContent='연결 링크를 복사했습니다'}catch(e){prompt('복사해서 전달하세요',link)}
+};
+$('apiRst').onclick=()=>{try{localStorage.removeItem(AK)}catch(e){}API_URL=API_DEFAULT;$('apiRst').style.display='none';$('lerr').textContent='서버 주소를 해제했습니다. 다시 로그인하세요 (서버 미설정 상태)';renderNet()};
 </script>
 </body>
 </html>
